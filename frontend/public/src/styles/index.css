@@ -1,0 +1,19 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+@font-face {
+    font-family: Shadows;
+    src: url(../assets/font/SairaSemiCondensed-Regular.ttf);
+}
+@font-face {
+    font-family: Saira;
+    src: url(../assets/font/SairaSemiCondensed-Regular.ttf);
+}
+@font-face {
+    font-family: AtkinsonBold;
+    src: url(../assets/font/AtkinsonHyperlegible-Bold.ttf);
+}
+
+/* html, body { height: 100%; } */
+/* body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; } */

@@ -1,0 +1,42 @@
+.img-jobit {
+    width: 156px;
+    height: 47px;
+    mix-blend-mode: normal;
+    max-width: 100%;
+    height: auto;
+}
+
+.img-1 {
+    width: 398px;
+    height: 373px;
+}
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #faab30;
+    backdrop-filter: blur(8px);
+    color: #fbf9f8;
+    border: none;
+    border-radius: 8px;
+    padding: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.3s, transform 0.2s;
+}
+
+.description {
+    font-weight: 400;
+    font-size: 45px;
+    line-height: 40px;
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-size: 32px;
+    line-height: 24px;
+    font-weight: 600;
+}

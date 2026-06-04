@@ -1,0 +1,16 @@
+node_modules
+.env
+.env.local
+.env.production
+package-lock.json
+
+# Prisma generated clients
+**/src/generated/
+
+# Build outputs
+dist/
+build/
+
+.claude
+.agent/cache
+.agent/tmp

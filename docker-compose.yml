@@ -1,0 +1,40 @@
+services:
+
+  mongodb:
+    image: mongo:8.0.0-noble
+    volumes:
+      - vmongo:/data/db
+    networks:
+      - backend
+
+  api:
+    build:
+      context: ./apps/api-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./apps/api-service/.env.docker
+    depends_on:
+      - mongodb
+    networks:
+      - backend
+      - frontend-net
+
+  frontend:
+    build:
+      context: ./frontend/public
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+    networks:
+      - frontend-net
+
+volumes:
+  vmongo:
+
+networks:
+  backend:
+  frontend-net:

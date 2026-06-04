@@ -1,0 +1,29 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: dev_Dockerfile  
+    # container_name: api_jobit
+    ports:
+      - "3000:3000"
+    volumes:
+      # - .:/var/www/html
+      # - .:/jobit/api
+      - /jobit/api/dist
+    networks:
+      - backend
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:8.0.0-noble
+    # container_name: mongodb_jobit
+    volumes: 
+      - vmongo:/data/db
+    ports:
+      - "28017:27017"
+    networks:
+      - backend
+volumes:
+  vmongo:
+networks:
+  backend:

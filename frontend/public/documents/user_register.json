@@ -1,0 +1,62 @@
+{
+    "nombre": "",
+    "apellido": "",
+    "documento": "",
+    "sexo": "",
+    "domicilio": {
+        "direccion": "",
+        "numero": "",
+        "codigo_postal": "",
+        "provincia": {
+            "id": "",
+            "name": ""
+        },
+        "departamento": {
+            "id": "",
+            "name": ""
+        },
+        "localidad": {
+            "id": "",
+            "name": ""
+        }
+    },
+    "contacto": {
+        "email": "",
+        "telefono": ""
+    },
+    "descripcion": "",
+    "servicios": [{
+        "rubro": "",
+        "subrubro": [{
+                "name": "",
+                "zona_cobertura": ["", ""],
+                "disponibilidad": [{
+                        "dia": "",
+                        "inicio": "",
+                        "final": ""
+                    },
+                    {
+                        "dia": "",
+                        "inicio": "",
+                        "final": ""
+                    }
+                ]
+            },
+            {
+                "name": "",
+                "zona_cobertura": ["", ""],
+                "disponibilidad": [{
+                        "dia": "",
+                        "inicio": "",
+                        "final": ""
+                    },
+                    {
+                        "dia": "",
+                        "inicio": "",
+                        "final": ""
+                    }
+                ]
+            }
+        ]
+    }]
+}

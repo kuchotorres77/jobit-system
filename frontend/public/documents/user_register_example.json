@@ -1,0 +1,174 @@
+[
+    {
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "documento": "34567890",
+        "sexo": "M",
+        "domicilio": {
+            "direccion": "Av. Libertador",
+            "numero": "1520",
+            "codigo_postal": "5400",
+            "provincia": { "id": "1", "name": "San Juan" },
+            "departamento": { "id": "1", "name": "Capital" },
+            "localidad": { "id": "1", "name": "San Juan Centro" }
+        },
+        "contacto": {
+            "email": "juan.perez@gmail.com",
+            "telefono": "2645123456"
+        },
+        "descripcion": "Técnico en reparación y mantenimiento de computadoras a domicilio.",
+        "servicios": [{
+            "rubro": "Informática",
+            "subrubro": [{
+                "name": "Reparación de PC",
+                "zona_cobertura": ["Capital", "Rawson"],
+                "disponibilidad": [
+                    { "dia": "Lunes", "inicio": "09:00", "final": "18:00" },
+                    { "dia": "Miércoles", "inicio": "09:00", "final": "18:00" }
+                ]
+            },
+            {
+                "name": "Instalación de software",
+                "zona_cobertura": ["Capital"],
+                "disponibilidad": [
+                    { "dia": "Martes", "inicio": "10:00", "final": "17:00" },
+                    { "dia": "Jueves", "inicio": "10:00", "final": "17:00" }
+                ]
+            }]
+        }]
+    },
+    {
+        "nombre": "María",
+        "apellido": "González",
+        "documento": "29876543",
+        "sexo": "F",
+        "domicilio": {
+            "direccion": "Calle Las Heras",
+            "numero": "820",
+            "codigo_postal": "5402",
+            "provincia": { "id": "1", "name": "San Juan" },
+            "departamento": { "id": "2", "name": "Rawson" },
+            "localidad": { "id": "2", "name": "Villa Krause" }
+        },
+        "contacto": {
+            "email": "maria.gonzalez@outlook.com",
+            "telefono": "2644556677"
+        },
+        "descripcion": "Electricista matriculada con experiencia en instalaciones residenciales.",
+        "servicios": [{
+            "rubro": "Electricidad",
+            "subrubro": [{
+                "name": "Instalaciones eléctricas",
+                "zona_cobertura": ["Rawson", "Capital"],
+                "disponibilidad": [
+                    { "dia": "Lunes", "inicio": "08:00", "final": "16:00" },
+                    { "dia": "Viernes", "inicio": "08:00", "final": "16:00" }
+                ]
+            }]
+        }]
+    },
+    {
+        "nombre": "Carlos",
+        "apellido": "Ramírez",
+        "documento": "32109876",
+        "sexo": "M",
+        "domicilio": {
+            "direccion": "Av. Ignacio de la Roza",
+            "numero": "2345",
+            "codigo_postal": "5400",
+            "provincia": { "id": "1", "name": "San Juan" },
+            "departamento": { "id": "3", "name": "Rivadavia" },
+            "localidad": { "id": "3", "name": "La Bebida" }
+        },
+        "contacto": {
+            "email": "carlos.ramirez@gmail.com",
+            "telefono": "2644789654"
+        },
+        "descripcion": "Servicio de plomería en general y mantenimiento preventivo.",
+        "servicios": [{
+            "rubro": "Plomería",
+            "subrubro": [{
+                "name": "Desagües y cloacas",
+                "zona_cobertura": ["Rivadavia", "Capital"],
+                "disponibilidad": [
+                    { "dia": "Martes", "inicio": "08:30", "final": "17:30" },
+                    { "dia": "Jueves", "inicio": "08:30", "final": "17:30" }
+                ]
+            },
+            {
+                "name": "Instalación sanitaria",
+                "zona_cobertura": ["Rivadavia"],
+                "disponibilidad": [
+                    { "dia": "Sábado", "inicio": "09:00", "final": "13:00" }
+                ]
+            }]
+        }]
+    }, 
+    {
+        "nombre": "Lucía",
+        "apellido": "Fernández",
+        "documento": "31234567",
+        "sexo": "F",
+        "domicilio": {
+            "direccion": "Ruta 40",
+            "numero": "4567",
+            "codigo_postal": "5413",
+            "provincia": { "id": "1", "name": "San Juan" },
+            "departamento": { "id": "4", "name": "Chimbas" },
+            "localidad": { "id": "4", "name": "Barrio Los Andes" }
+        },
+        "contacto": {
+            "email": "lucia.fernandez@hotmail.com",
+            "telefono": "2644667788"
+        },
+        "descripcion": "Gasista matriculada. Instalación y mantenimiento de artefactos a gas.",
+        "servicios": [{
+            "rubro": "Gas",
+            "subrubro": [{
+                "name": "Revisión de calefactores",
+                "zona_cobertura": ["Chimbas", "Capital"],
+                "disponibilidad": [
+                    { "dia": "Miércoles", "inicio": "09:00", "final": "18:00" },
+                    { "dia": "Viernes", "inicio": "09:00", "final": "18:00" }
+                ]
+            }]
+        }]
+    },
+    {
+        "nombre": "Ricardo",
+        "apellido": "López",
+        "documento": "28987654",
+        "sexo": "M",
+        "domicilio": {
+            "direccion": "Calle Sarmiento",
+            "numero": "600",
+            "codigo_postal": "5411",
+            "provincia": { "id": "1", "name": "San Juan" },
+            "departamento": { "id": "5", "name": "Santa Lucía" },
+            "localidad": { "id": "5", "name": "Santa Lucía Norte" }
+        },
+        "contacto": {
+            "email": "ricardo.lopez@yahoo.com",
+            "telefono": "2645127890"
+        },
+        "descripcion": "Albañil con más de 15 años de experiencia en construcción y refacción.",
+        "servicios": [{
+            "rubro": "Construcción",
+            "subrubro": [{
+                "name": "Revoques y terminaciones",
+                "zona_cobertura": ["Santa Lucía", "Capital"],
+                "disponibilidad": [
+                    { "dia": "Lunes", "inicio": "08:00", "final": "17:00" },
+                    { "dia": "Miércoles", "inicio": "08:00", "final": "17:00" }
+                ]
+            },
+            {
+                "name": "Colocación de cerámicos",
+                "zona_cobertura": ["Santa Lucía"],
+                "disponibilidad": [
+                    { "dia": "Viernes", "inicio": "08:00", "final": "16:00" }
+                ]
+            }]
+        }]
+    }   
+]
