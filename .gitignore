@@ -14,3 +14,5 @@ build/
 .claude
 .agent/cache
 .agent/tmp
+
+screenshots/
