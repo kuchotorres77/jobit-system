@@ -1,34 +1,28 @@
-# Last Checkpoint — 2026-06-11 (checkpoint #2 del día)
+# Last Checkpoint — 2026-06-11 (3er checkpoint del día)
 
 ## Sesión summary
-
-Se implementó la **búsqueda pública de prestadores** end-to-end: la API ahora filtra por `rubroId`, `subrubroId`, `zona` y `q` (16 tests pasando), y el frontend tiene `/servicios` (buscador de pills + cards + "Ver más") y `/servicios/:id` (detalle con contacto), ambas siguiendo los frames de Figma **Buscar-Jobit** y **Buscar-Jobit 2** (accedidos vía API con el token del `.env` raíz; renders en `screenshots/`). Además quedó el **stack completo corriendo en Docker**: `postgres` (5435) + `api-nest` (3005) + `frontend` (nginx en 80 con proxy same-origin `/api`). Se detectó y saneó el token real de Figma que estaba en `.env.example`.
+Stack completo verificado en Docker (postgres 5435 / api-nest **13005** / frontend 80): el 3005 cayó en un rango de puertos reservado por Windows y se movió a 13005; los `.env` perdidos de `apps/api` se regeneraron. Seeder ampliado a datos demo completos (10 prestadores logueables, password `Jobit123!`). NavbarUser muestra sesión (avatar de iniciales + nombre + logout) con hook `useSession` reactivo. Navegación del home arreglada (Buscar → `/servicios`, secciones por `/#hash` desde cualquier página). Login rediseñado contra el frame de Figma `290:2305` conservando el botón Registrarse, con iteración fina del usuario. Título de `/servicios` reemplazado por el asset del logo (en el frame es imagen, no texto).
 
 ## Estado actual
-
-- Branch: `main`
-- Last commit: `11525ed` feat(servicios): busqueda publica con filtros, paginas segun Figma y stack Docker
-- Working tree: clean (tras commit del checkpoint)
-- Docker: 3 contenedores up — entrar por `http://localhost/servicios`
-- Plan activo: no hay plan formal
+- Branch: `main` (tracking `origin/main`)
+- Commits de la sesión: `2b68803` (seed demo), `4fbd723` (puerto 13005), `df75aa4` (navbar sesión), `984c13a` (navegación home), `01625a7` (login Figma), `9f4ffc5` (título servicios) + checkpoint docs
+- Working tree post-checkpoint: solo `frontend/public/vite.config.ts` modificado (**cambio del usuario**: comentó el `server.host` fijo — decisión de commit pendiente del usuario)
+- Plan activo: no configurado (`core-config.yaml` no existe)
 
 ## Próximo step recomendado
-
-**Persistir teléfono y domicilio del Register** — las tablas `Contacto` y `Direccion` ya existen en el schema Prisma; falta DTO en la API + envío desde el frontend. Desbloquea el teléfono WhatsApp de las cards del diseño.
+Persistir teléfono/domicilio del Register: agregar campos opcionales al RegisterDto (o endpoint de perfil) usando las tablas `Contacto`/`Direccion` existentes y enviarlos desde el frontend. Esto además habilita mostrar WhatsApp en las cards (gap de Figma).
 
 ## Comandos para resumir
-
-1. `/workflows-project-resume`
-2. `docker compose up -d postgres api-nest frontend` (si los contenedores están caídos)
+1. `/workflows:project-resume` (recovery completo)
+2. `docker compose up -d postgres api-nest frontend` si el stack está abajo (verificar con `docker compose ps`)
 
 ## Backlog discovered esta sesión
-
-- Eliminar `apps/api-service` + `mongodb` del compose (confirmar paridad con el usuario primero)
-- Fotos/galería de prestadores; rating + opiniones; favoritos persistentes (gaps vs diseño Figma)
-- Provincias/departamentos hardcodeados (migrar a tablas + IDs)
+- Rutas crudas `/src/assets/...` rotas en producción (HeroSection y otros; Login ya migrado) — entrada nueva en next-action.md
+- Búsqueda `q` sensible a tildes — extensión `unaccent` de Postgres
+- `package.json#prisma` deprecado en Prisma 7 → `prisma.config.ts`
 
 ## Notas para próxima sesión
-
-- Figma accesible vía API: `URL_FIGMA` + `API_TOKEN_FIGMA` (scope `file_content:read`) en `.env` raíz; file key `rdNjA5MlzX9plDGHueK9lS`; frames clave: Buscar-Jobit [2052:496], Buscar-Jobit 2 [2072:928], Ser_Un_Jobit [192:2703], Inicio [166:1691], Login [290:2305]
-- El frontend dockerizado consume `/api` same-origin (nginx → api-nest); en dev con Vite usa `VITE_API_URL` del `.env` (default `localhost:3005`)
-- Puertos ocupados por el queue-system: 3000-3002, 4001, 5173-5177, 5433, 5434, 6379
+- Credenciales demo: `juan.perez@jobit.demo` … `valentina.rios@jobit.demo` / `Jobit123!`
+- El API quedó en **http://localhost:13005** (no 3005); vía frontend nginx: `http://localhost/api`
+- Si un bind de Docker falla con "socket no permitido": `netsh interface ipv4 show excludedportrange protocol=tcp`
+- Token Figma operativo en `.env` raíz (scope file_content:read); file key `rdNjA5MlzX9plDGHueK9lS`

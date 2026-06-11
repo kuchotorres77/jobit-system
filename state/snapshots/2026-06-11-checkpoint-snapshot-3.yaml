@@ -1,0 +1,17 @@
+checkpoint_date: 2026-06-11
+session_summary: >-
+  Stack levantado en Docker (api-nest movido a 13005 por rangos reservados de Windows),
+  seeder completo con 10 prestadores demo, sesión visible en NavbarUser (avatar + logout),
+  navegación del home arreglada (Buscar → /servicios, secciones por hash) y Login
+  rediseñado según el frame de Figma conservando el botón Registrarse.
+commits_created:
+  - pending: "se generan en este checkpoint (ver LAST_CHECKPOINT.md)"
+files_modified_count: 9
+files_created_count: 1
+backlog_items_added:
+  - "Rutas crudas /src/assets/... rotas en producción (HeroSection y otros)"
+  - "Búsqueda q sensible a tildes — habilitar unaccent en Postgres"
+  - "Migrar package.json#prisma a prisma.config.ts (deprecado en Prisma 7)"
+next_session_recommendation: >-
+  Persistir teléfono/domicilio del Register (schema ya lo soporta) o pasada global
+  de assets crudos; credenciales demo: juan.perez@jobit.demo / Jobit123!

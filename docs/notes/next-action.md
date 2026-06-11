@@ -6,16 +6,6 @@ Priority actions queue. Entries older than 14 days should be purged.
 
 ## [2026-06-10] → To: Dev
 
-**Subject:** Commitear el trabajo de la migración
-**Priority:** High
-**Action Required:** Yes
-
-Pendiente de commit: `apps/api/` completo (NestJS + Prisma + seed), capa `src/api/` del frontend + Login/Register conectados, docker-compose (postgres 5435, api-nest 3005), .gitignore, package.json raíz, docs/notes, `.jvis/tasks/*.md` y `.dockerignore`.
-
----
-
-## [2026-06-10] → To: Dev
-
 **Subject:** Persistir teléfono y domicilio en el registro
 **Priority:** Medium
 **Action Required:** Yes
@@ -34,12 +24,12 @@ El form de Register captura teléfono y domicilio pero la API no los recibe aún
 
 ---
 
-## [2026-06-10] → To: Dev
+## [2026-06-11] → To: Dev
 
-**Subject:** Limpieza de datos de prueba en postgres local
-**Priority:** Low
-**Action Required:** No
+**Subject:** Corregir rutas crudas `/src/assets/...` en el frontend
+**Priority:** Medium
+**Action Required:** Yes
 
-El smoke test dejó datos en la base local: usuarios juan@test.com y maria@test.com, rubro "Plomeria" (sin tilde, duplicado conceptual de "Plomero" del seed) y 2 prestadores. Limpiar con `prisma migrate reset` + seed cuando moleste.
+Las imágenes referenciadas con path crudo (`/src/assets/img/...`) devuelven el index.html en el build de producción (nginx). `Login.tsx` ya fue migrado a imports de Vite; quedan al menos `HeroSection.tsx` (bgSrc, logoSrc) y posiblemente otros componentes. Hacer una pasada global con `grep "/src/assets"`.
 
 ---

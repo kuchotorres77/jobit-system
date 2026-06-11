@@ -29,11 +29,38 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 
 ### In Progress
 
-- Nada en curso. Pendiente inmediato: commitear el trabajo de la migración.
+- Nada en curso.
 
 ---
 
 ## Activity Log
+
+## [2026-06-11] Agent: Claude — Seed demo, sesión en navbar, Login según Figma
+
+### Completed
+- **docker-compose**: `api-nest` movido a puerto host **13005** — el 3005 cayó en un rango reservado por WinNAT/Hyper-V (`netsh interface ipv4 show excludedportrange`); esos rangos cambian con cada reinicio de Windows
+- `apps/api/.env.docker` y `.env` regenerados (gitignoreados, se habían perdido) con JWT secrets nuevos; volumen postgres recreado desde cero + seed
+- **Seeder completo** (`prisma/seed.ts`): además de rubros, 10 prestadores demo logueables (`*.@jobit.demo` / `Jobit123!`, bcrypt rounds 10) con servicios, zonas alineadas a los departamentos de San Juan del frontend, disponibilidades, contactos y direcciones. Idempotente. Verificado E2E vía proxy nginx.
+- **NavbarUser con sesión**: avatar de iniciales (gradiente violeta de las cards) + nombre/apellido + menú "Cerrar sesión". Nuevo hook `useSession` + evento `jobit:session-change` disparado por `saveSession`/`clearSession`.
+- **Navegación del home**: botón "Buscar" del hero → `/servicios` (antes abría WhatsApp placeholder); links Inicio/Agendame/Capacitate/Contactos como `/#seccion`, funcionan desde cualquier página con scroll suave + offset del navbar; menú mobile se cierra al navegar.
+- **Login rediseñado según frame Figma `290:2305`**: tarjeta centrada con grilla 60/40 (violeta más angosto), campos de 57px con subrayado naranja, ojo mostrar/ocultar contraseña, logo arriba a la izquierda, foto pisando el borde del panel violeta (96px) sin tocar el formulario. Botón "Registrarse" conservado a pedido (no está en el frame). Usuario iteró valores finos (paddings, offsets) en conjunto.
+- **/servicios**: el título "Jobit" del frame Buscar-Jobit es una imagen (`logo Letras Jobit PNG`), no texto — reemplazado el h1 por el asset `logo LetrasJobit.png` vía import de Vite.
+- **Fix producción**: las rutas crudas `/src/assets/...` devuelven el index.html en el build (nginx) — `Login.tsx` migrado a imports de Vite.
+
+### Decisiones / incidentes
+- Token de Figma del `.env` raíz estaba en placeholder → el usuario generó uno nuevo (scope `file_content:read`). Render de frames via `GET /v1/images/`.
+- Usuario comentó el `server.host` fijo (192.168.1.11) en `vite.config.ts` (cambio propio, fuera del trabajo del agente).
+
+### Backlog discovered
+- Rutas crudas `/src/assets/...` restantes (HeroSection: bgSrc, logo LetrasJobit; revisar todo el frontend) — rotas en producción
+- Búsqueda `q` sensible a tildes ("cerrajeria" no matchea "Cerrajería") — habilitar extensión `unaccent` de Postgres
+- `package.json#prisma` deprecado (Prisma 7) — migrar a `prisma.config.ts`
+
+### Next Steps
+- Persistir teléfono/domicilio del Register (Contacto/Direccion ya existen en el schema)
+- Corregir las rutas de assets crudas restantes
+
+---
 
 ## [2026-06-11] Agent: Claude — Stack completo en Docker + checkpoint
 
