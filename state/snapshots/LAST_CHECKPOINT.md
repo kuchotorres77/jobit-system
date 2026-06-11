@@ -1,37 +1,34 @@
-# Last Checkpoint — 2026-06-11
+# Last Checkpoint — 2026-06-11 (checkpoint #2 del día)
 
 ## Sesión summary
 
-Se ejecutó la migración del backend de Express + MongoDB a **NestJS 11 + Prisma 6 + PostgreSQL 17** en `apps/api/` (el legado `apps/api-service/` queda como referencia). Se trasladaron los modelos Mongoose a un esquema relacional normalizado, con auth JWT + ownership, validación DTO, repository pattern, 15 tests unitarios y migración `init` aplicada. Se creó el seed de 10 rubros / 39 subrubros. Además se conectó por primera vez el frontend a una API real: capa `src/api/` tipada, Login funcional y Register con flujo completo (registro → login → crear prestador). Todo verificado E2E contra la API corriendo.
+Se implementó la **búsqueda pública de prestadores** end-to-end: la API ahora filtra por `rubroId`, `subrubroId`, `zona` y `q` (16 tests pasando), y el frontend tiene `/servicios` (buscador de pills + cards + "Ver más") y `/servicios/:id` (detalle con contacto), ambas siguiendo los frames de Figma **Buscar-Jobit** y **Buscar-Jobit 2** (accedidos vía API con el token del `.env` raíz; renders en `screenshots/`). Además quedó el **stack completo corriendo en Docker**: `postgres` (5435) + `api-nest` (3005) + `frontend` (nginx en 80 con proxy same-origin `/api`). Se detectó y saneó el token real de Figma que estaba en `.env.example`.
 
 ## Estado actual
 
 - Branch: `main`
-- Last commit: `0f9f363` feat(api): migracion backend a NestJS + Prisma + PostgreSQL e integracion del frontend
-- Working tree: quedan archivos DEL USUARIO sin commitear (`.agent/project-context.md`, `.jvis/tasks/*.md`, `.dockerignore`) — decisión del usuario
-- Plan activo: no hay plan formal (sistema de planes no configurado)
+- Last commit: `11525ed` feat(servicios): busqueda publica con filtros, paginas segun Figma y stack Docker
+- Working tree: clean (tras commit del checkpoint)
+- Docker: 3 contenedores up — entrar por `http://localhost/servicios`
+- Plan activo: no hay plan formal
 
 ## Próximo step recomendado
 
-Implementar la **página pública de búsqueda/listado de prestadores** — `GET /api/prestadores` (paginado) y `getPrestadores()` del cliente ya están listos; falta solo la UI. Alternativa: persistir teléfono/domicilio del Register (tablas `Contacto`/`Direccion` ya existen en el schema).
+**Persistir teléfono y domicilio del Register** — las tablas `Contacto` y `Direccion` ya existen en el schema Prisma; falta DTO en la API + envío desde el frontend. Desbloquea el teléfono WhatsApp de las cards del diseño.
 
 ## Comandos para resumir
 
-1. `/workflows-project-resume` (recovery completo)
-2. `docker compose up -d postgres` + `npm run start:dev -w @jobit/api` (API en dev)
-3. `npm run dev -w jobit-react` (frontend — ojo: vite.config fija host 192.168.1.11)
+1. `/workflows-project-resume`
+2. `docker compose up -d postgres api-nest frontend` (si los contenedores están caídos)
 
 ## Backlog discovered esta sesión
 
-- Persistir teléfono y domicilio del Register (API no los recibe aún)
-- Portal público de búsqueda de prestadores
-- Refresh tokens + RBAC
-- Plan monolito modular → microservicios (visión del usuario en `.agent/project-context.md`)
-- Datos de prueba en postgres local para limpiar (`prisma migrate reset` + seed)
-- Provincias/departamentos/localidades hardcodeados en el Register
+- Eliminar `apps/api-service` + `mongodb` del compose (confirmar paridad con el usuario primero)
+- Fotos/galería de prestadores; rating + opiniones; favoritos persistentes (gaps vs diseño Figma)
+- Provincias/departamentos hardcodeados (migrar a tablas + IDs)
 
 ## Notas para próxima sesión
 
-- **Puertos**: otro proyecto (queue-system) corre en Docker y ocupa 3000-3002, 4001, 5173-5177, 5433, 5434, 6379. JOBIT usa **5435** (postgres) y **3005** (api).
-- El usuario reescribió `.agent/project-context.md` con la visión completa de marketplace — leerlo antes de diseñar features nuevas.
-- `apps/api-service` (Express+Mongo) es solo referencia: NO agregar features ahí.
+- Figma accesible vía API: `URL_FIGMA` + `API_TOKEN_FIGMA` (scope `file_content:read`) en `.env` raíz; file key `rdNjA5MlzX9plDGHueK9lS`; frames clave: Buscar-Jobit [2052:496], Buscar-Jobit 2 [2072:928], Ser_Un_Jobit [192:2703], Inicio [166:1691], Login [290:2305]
+- El frontend dockerizado consume `/api` same-origin (nginx → api-nest); en dev con Vite usa `VITE_API_URL` del `.env` (default `localhost:3005`)
+- Puertos ocupados por el queue-system: 3000-3002, 4001, 5173-5177, 5433, 5434, 6379

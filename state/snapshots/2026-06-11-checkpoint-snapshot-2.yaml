@@ -1,0 +1,24 @@
+checkpoint_date: 2026-06-11
+checkpoint_number: 2
+session_summary: >
+  Búsqueda pública de prestadores: filtros en la API (rubro/subrubro/zona/texto),
+  páginas /servicios y /servicios/:id implementadas según los frames de Figma
+  Buscar-Jobit, y stack completo dockerizado (postgres + api-nest + frontend
+  con nginx proxy same-origin). Token de Figma expuesto en .env.example saneado.
+commits_created:
+  - sha: 11525ed
+    subject: "feat(servicios): busqueda publica con filtros, paginas segun Figma y stack Docker"
+files_modified_count: 12
+files_created_count: 7
+backlog_items_added:
+  - "Eliminar apps/api-service + mongodb del compose cuando el usuario confirme paridad"
+  - "Fotos/galería de prestadores (placeholder de iniciales hoy)"
+  - "Rating y opiniones (omitidos del diseño por falta de feature de reviews)"
+  - "Favoritos persistentes (hoy solo estado local)"
+next_session_recommendation: >
+  Persistir teléfono y domicilio del Register (tablas Contacto/Direccion ya
+  existen en Prisma) — desbloquea mostrar el teléfono WhatsApp que pide el
+  diseño de las cards.
+environment_notes:
+  - "Stack Docker corriendo: frontend en :80 (nginx proxy /api), api-nest en :3005, postgres en :5435"
+  - "Figma: URL_FIGMA + API_TOKEN_FIGMA (scope file_content:read) en .env raíz; renders en screenshots/ (gitignoreado)"
