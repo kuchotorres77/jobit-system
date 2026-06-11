@@ -1,6 +1,12 @@
 const TOKEN_KEY = "jobit_token";
 const USER_KEY = "jobit_user";
 
+export const SESSION_CHANGE_EVENT = "jobit:session-change";
+
+function notifySessionChange(): void {
+  window.dispatchEvent(new Event(SESSION_CHANGE_EVENT));
+}
+
 export interface SessionUser {
   id: string;
   nombre: string;
@@ -25,11 +31,13 @@ export function getSessionUser(): SessionUser | null {
 export function saveSession(token: string, user: SessionUser): void {
   localStorage.setItem(TOKEN_KEY, token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  notifySessionChange();
 }
 
 export function clearSession(): void {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  notifySessionChange();
 }
 
 export function isLoggedIn(): boolean {
