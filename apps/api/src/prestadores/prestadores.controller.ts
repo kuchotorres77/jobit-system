@@ -14,12 +14,10 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import {
-  PaginatedResult,
-  PaginationQueryDto,
-} from '../common/dto/pagination-query.dto';
+import { PaginatedResult } from '../common/dto/pagination-query.dto';
 import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import { CreatePrestadorDto } from './dto/create-prestador.dto';
+import { FindPrestadoresQueryDto } from './dto/find-prestadores-query.dto';
 import { UpdatePrestadorDto } from './dto/update-prestador.dto';
 import { PrestadorCompleto } from './prestadores.repository';
 import { PrestadoresService } from './prestadores.service';
@@ -30,9 +28,9 @@ export class PrestadoresController {
 
   @Get()
   findAll(
-    @Query() pagination: PaginationQueryDto,
+    @Query() query: FindPrestadoresQueryDto,
   ): Promise<PaginatedResult<PrestadorCompleto>> {
-    return this.prestadoresService.findAll(pagination);
+    return this.prestadoresService.findAll(query);
   }
 
   @Get(':id')

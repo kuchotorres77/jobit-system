@@ -40,6 +40,7 @@ export const NavbarUser = () => {
         >
           <ul className="flex flex-col md:flex-row space-y-2 md:space-y-0 text-gray-700 font-semibold">
             <li><a href="#inicio" className="block px-4 py-2 hover:text-orange-600">Inicio</a></li>
+            <li><Link to="/servicios" className="block px-4 py-2 hover:text-orange-600">Servicios</Link></li>
             <li><a href="#agendame" className="block px-4 py-2 hover:text-orange-600">Agendame</a></li>
             <li><a href="#capacitate" className="block px-4 py-2 hover:text-orange-600">Capacitate</a></li>
             <li><a href="#contactos" className="block px-4 py-2 hover:text-orange-600">Contactos</a></li>
@@ -49,7 +50,7 @@ export const NavbarUser = () => {
           <div className="mt-4 md:mt-0 md:ml-4">
             <Link
               to="/login"
-              className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+              className="inline-flex items-center gap-2 bg-jobit-violeta-900 text-white px-4 py-2 rounded hover:opacity-90 transition"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path

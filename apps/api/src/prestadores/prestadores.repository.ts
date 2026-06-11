@@ -29,6 +29,13 @@ export type PrestadorCompleto = Prisma.PrestadorGetPayload<{
   include: typeof prestadorInclude;
 }>;
 
+export interface PrestadorFilters {
+  rubroId?: string;
+  subrubroId?: string;
+  zona?: string;
+  q?: string;
+}
+
 @Injectable()
 export class PrestadoresRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -51,17 +58,48 @@ export class PrestadoresRepository {
   async findMany(
     skip: number,
     take: number,
+    filters: PrestadorFilters = {},
   ): Promise<{ data: PrestadorCompleto[]; total: number }> {
+    const where = this.buildWhere(filters);
     const [data, total] = await this.prisma.$transaction([
       this.prisma.prestador.findMany({
         skip,
         take,
+        where,
         orderBy: { createdAt: 'desc' },
         include: prestadorInclude,
       }),
-      this.prisma.prestador.count(),
+      this.prisma.prestador.count({ where }),
     ]);
     return { data, total };
+  }
+
+  private buildWhere(filters: PrestadorFilters): Prisma.PrestadorWhereInput {
+    const where: Prisma.PrestadorWhereInput = {};
+
+    const servicioFilter: Prisma.ServicioWhereInput = {};
+    if (filters.subrubroId) {
+      servicioFilter.subrubroId = filters.subrubroId;
+    }
+    if (filters.rubroId) {
+      servicioFilter.subrubro = { rubroId: filters.rubroId };
+    }
+    if (filters.zona) {
+      servicioFilter.zonaCobertura = { has: filters.zona };
+    }
+    if (Object.keys(servicioFilter).length > 0) {
+      where.servicios = { some: servicioFilter };
+    }
+
+    if (filters.q) {
+      where.OR = [
+        { descripcion: { contains: filters.q, mode: 'insensitive' } },
+        { user: { nombre: { contains: filters.q, mode: 'insensitive' } } },
+        { user: { apellido: { contains: filters.q, mode: 'insensitive' } } },
+      ];
+    }
+
+    return where;
   }
 
   findById(id: string): Promise<PrestadorCompleto | null> {

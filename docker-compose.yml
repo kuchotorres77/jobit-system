@@ -56,7 +56,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - api
+      - api-nest
     networks:
       - frontend-net
 

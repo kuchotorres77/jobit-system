@@ -99,6 +99,28 @@ describe('PrestadoresService', () => {
     });
   });
 
+  describe('findAll', () => {
+    it('should forward pagination and filters to the repository', async () => {
+      repository.findMany.mockResolvedValue({ data: [prestador], total: 1 });
+
+      const result = await service.findAll({
+        page: 2,
+        limit: 10,
+        rubroId: 'rubro-1',
+        zona: 'Capital',
+        q: 'plomero',
+      });
+
+      expect(repository.findMany).toHaveBeenCalledWith(10, 10, {
+        rubroId: 'rubro-1',
+        subrubroId: undefined,
+        zona: 'Capital',
+        q: 'plomero',
+      });
+      expect(result.meta).toEqual({ total: 1, page: 2, limit: 10 });
+    });
+  });
+
   describe('findById', () => {
     it('should return prestador when it exists', async () => {
       repository.findById.mockResolvedValue(prestador);

@@ -1,8 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  PaginatedResult,
-  PaginationQueryDto,
-} from '../common/dto/pagination-query.dto';
+import { PaginatedResult } from '../common/dto/pagination-query.dto';
 import {
   OperacionNoPermitidaException,
   PerfilPrestadorExistenteException,
@@ -10,6 +7,7 @@ import {
   SubrubroNoEncontradoException,
 } from '../common/exceptions/domain.exception';
 import { CreatePrestadorDto } from './dto/create-prestador.dto';
+import { FindPrestadoresQueryDto } from './dto/find-prestadores-query.dto';
 import { UpdatePrestadorDto } from './dto/update-prestador.dto';
 import {
   PrestadorCompleto,
@@ -43,21 +41,25 @@ export class PrestadoresService {
   }
 
   async findAll(
-    pagination: PaginationQueryDto,
+    query: FindPrestadoresQueryDto,
   ): Promise<PaginatedResult<PrestadorCompleto>> {
-    this.logger.debug(
-      `findAll: page=${pagination.page} limit=${pagination.limit}`,
-    );
+    this.logger.debug(`findAll: page=${query.page} limit=${query.limit}`);
 
-    const skip = (pagination.page - 1) * pagination.limit;
+    const skip = (query.page - 1) * query.limit;
     const { data, total } = await this.prestadoresRepository.findMany(
       skip,
-      pagination.limit,
+      query.limit,
+      {
+        rubroId: query.rubroId,
+        subrubroId: query.subrubroId,
+        zona: query.zona,
+        q: query.q,
+      },
     );
 
     return {
       data,
-      meta: { total, page: pagination.page, limit: pagination.limit },
+      meta: { total, page: query.page, limit: query.limit },
     };
   }
 

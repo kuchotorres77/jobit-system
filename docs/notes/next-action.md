@@ -24,16 +24,6 @@ El form de Register captura teléfono y domicilio pero la API no los recibe aún
 
 ---
 
-## [2026-06-10] → To: Dev
-
-**Subject:** Portal público: listado/búsqueda de prestadores
-**Priority:** Medium
-**Action Required:** Yes
-
-`GET /api/prestadores` (paginado) y `getPrestadores()` del cliente ya están listos. Falta la página pública de búsqueda por rubro/zona (visión: cualquier visitante busca sin login).
-
----
-
 ## [2026-06-10] → To: Architect
 
 **Subject:** Plan de evolución monolito modular → microservicios

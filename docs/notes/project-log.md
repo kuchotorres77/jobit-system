@@ -35,6 +35,50 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 
 ## Activity Log
 
+## [2026-06-11] Agent: Claude — Stack completo en Docker + checkpoint
+
+### Completed
+- Stack dockerizado y verificado: `postgres` (5435) + `api-nest` (3005, corre `prisma migrate deploy` al boot) + `frontend` (nginx en 80)
+- nginx proxy `/api/` → `api-nest:3000` (frontend consume same-origin, sin CORS, accesible desde la LAN); build del frontend con `VITE_API_URL=/api`
+- `apps/api/.env.docker` creado (gitignoreado); `frontend` ahora `depends_on: api-nest`
+- Servicios legados (`mongodb` + `api` Express) siguen en compose pero NO se levantan — candidatos a eliminar
+- **Seguridad**: `.env.example` raíz contenía el token real de Figma → saneado con placeholder antes de commitear (el real quedó solo en `.env`)
+
+### Next Steps
+- Eliminar `apps/api-service` + `mongodb` del compose cuando el usuario confirme paridad
+- Persistir teléfono/domicilio del Register
+
+---
+
+## [2026-06-11] Agent: Claude — Rediseño según Figma (Buscar-Jobit)
+
+### Completed
+- Acceso a Figma vía API con `API_TOKEN_FIGMA` + `URL_FIGMA` del `.env` raíz (file key `rdNjA5MlzX9plDGHueK9lS`; el token necesitó scope `file_content:read`). Frames renderizados en `screenshots/buscar-jobit-{1,2}.png`
+- `/servicios` rediseñada según frame **Buscar-Jobit** [2052:496]: SearchBar de pills (Rubro/Sub-rubro/Ubicación + Buscar índigo #242557), título "Jobit" naranja font Shadows, cards con foto-placeholder de iniciales + rubro uppercase + corazón favorito + zonas + horario + contacto, "Ver más" (load-more)
+- Nueva página detalle `/servicios/:id` según frame **Buscar-Jobit 2** [2072:928]: banner placeholder, descripción, disponibilidad, departamentos, chips de servicios, card de contacto. SearchBar navega de vuelta al listado con filtros por URL (`?rubro=&subrubro=&zona=`)
+- NavbarUser ajustado al diseño (link "Servicios", botón Ingresar #242557)
+
+### Gaps vs diseño (datos que aún no existen)
+- Fotos de prestadores (galería) → placeholder con iniciales; requiere vincular uploads al perfil
+- Teléfono WhatsApp → se muestra email; requiere persistir Contacto
+- Rating/estrellas y "Opiniones destacadas" → omitidos; requiere review feature
+- Favoritos (corazón) → solo estado local; requiere usuarios customer + persistencia
+
+---
+
+## [2026-06-11] Agent: Claude — Búsqueda pública de prestadores
+
+### Completed
+- API: filtros en `GET /api/prestadores` — `rubroId`, `subrubroId`, `zona` (match exacto en zonaCobertura), `q` (texto insensible en nombre/apellido/descripción). Nuevo `FindPrestadoresQueryDto`, `buildWhere` en repository. 16 tests pasando.
+- Frontend: página pública `/servicios` — filtros por rubro/subrubro (dependiente)/zona/texto, cards de prestadores (servicios, zonas, disponibilidad), paginación. Link "Buscar Servicios" en NavbarUser.
+- E2E verificado: sin filtro (2), por rubro, por subrubro, por zona, por texto, combinado sin match (0), UUID inválido → 400.
+
+### Next Steps
+- Persistir teléfono/domicilio del Register
+- Página de detalle de prestador (`getPrestador()` ya existe en el cliente)
+
+---
+
 ## [2026-06-11] Agent: Claude (checkpoint)
 
 ### Completed
