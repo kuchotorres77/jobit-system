@@ -1,5 +1,6 @@
+import { Link } from "react-router-dom";
+
 type HeroSectionProps = {
-    phone?: string; // link de busqueda
     title?: string;
     subtitle?: string;
     ctaText?: string;
@@ -9,7 +10,6 @@ type HeroSectionProps = {
 };
 
 export const HeroSection = ({
-    phone = "549XXXXXXXXXX",
     title = "Encontrame",
     subtitle = "Busca y encuentra prestadores de servicios calificados.",
     ctaText = "Buscar",
@@ -38,12 +38,10 @@ export const HeroSection = ({
                         fontFamily: "AtkinsonBold, sans-serif"
                     }}
                 >{subtitle}</p>
-                <a
-                    href={`https://wa.me/${phone}`}
-                    target="_blank"
-                    rel="noreferrer"
+                <Link
+                    to="/servicios"
                     className={"mt-4 px-8 py-4 bg-orange-500 hover:bg-orange-600 text-white text-xl font-bold rounded-xl transition-transform transform hover:scale-105 shadow-lg"}
-                >{ctaText}</a>
+                >{ctaText}</Link>
                 <div className="flex flex-row gap-4 mt-6">
                     {/* <img src={badgeSrc} alt="App Store" className="h-12" /> */}
                 </div>
