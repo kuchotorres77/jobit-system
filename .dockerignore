@@ -1,0 +1,14 @@
+# Build outputs — regenerated inside Docker
+**/dist
+**/*.tsbuildinfo
+
+# Dependencies — installed inside Docker
+**/node_modules
+
+# Dev tooling
+**/.git
+**/.claude
+**/docs
+**/.env
+**/.env.*
+!**/.env.example
