@@ -35,6 +35,22 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 
 ## Activity Log
 
+## [2026-06-11] Agent: Claude (checkpoint)
+
+### Completed
+- Checkpoint de cierre de sesión: commit `0f9f363` (71 archivos — backend NestJS completo, capa API del frontend, docs, infra)
+- Snapshot en `state/snapshots/2026-06-11-checkpoint-snapshot.yaml` + `LAST_CHECKPOINT.md`
+- `.gitignore`: agregado `*.tsbuildinfo`
+
+### Pendiente de decisión del usuario
+- Archivos del usuario sin commitear: `.agent/project-context.md` (reescrito por el usuario con visión marketplace), `.jvis/tasks/*.md`, `.dockerignore`
+
+### Next Steps
+- Página pública de búsqueda de prestadores (API y cliente listos)
+- Persistir teléfono/domicilio del Register
+
+---
+
 ## [2026-06-10] Agent: Claude
 
 ### Completed

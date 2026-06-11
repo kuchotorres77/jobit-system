@@ -1,0 +1,24 @@
+checkpoint_date: 2026-06-11
+session_summary: >
+  Migración del backend a NestJS + Prisma + PostgreSQL (apps/api nuevo, convive
+  con apps/api-service legado), seed de rubros, y primera integración real del
+  frontend con la API (Login y Register conectados). Flujo E2E verificado.
+commits_created:
+  - sha: 0f9f363
+    subject: "feat(api): migracion backend a NestJS + Prisma + PostgreSQL e integracion del frontend"
+files_modified_count: 9
+files_created_count: 62
+backlog_items_added:
+  - "Persistir teléfono y domicilio del Register (tablas Contacto/Direccion ya existen en Prisma)"
+  - "Portal público: página de búsqueda de prestadores (API y cliente listos)"
+  - "Plan de evolución monolito modular → microservicios (visión en .agent/project-context.md)"
+  - "Refresh tokens + RBAC"
+  - "Limpiar datos de prueba en postgres local (juan@test.com, maria@test.com, rubro Plomeria duplicado)"
+next_session_recommendation: >
+  Implementar la página pública de listado/búsqueda de prestadores
+  (getPrestadores() ya disponible en frontend/public/src/api), o persistir
+  teléfono/domicilio en el registro.
+environment_notes:
+  - "PostgreSQL JOBIT en host:5435, API en host:3005 — puertos 3000-3002/5433/5434/6379 ocupados por otro proyecto (queue-system) en Docker"
+  - "Levantar API dev: npm run start:dev -w @jobit/api (lee apps/api/.env)"
+  - "Seed: npx -w @jobit/api prisma db seed"
