@@ -5,6 +5,7 @@ import { NavbarUser, Footer } from "@/components";
 import { ApiError, getPrestadores, getRubros, Prestador, Rubro } from "@/api";
 import { PrestadorCard } from "./components/PrestadorCard";
 import { SearchBar, SearchValues, SIN_FILTRO } from "./components/SearchBar";
+import logoLetras from "@/assets/img/logo LetrasJobit.png";
 
 const PAGE_SIZE = 12;
 
@@ -84,9 +85,9 @@ export default function Servicios() {
           onBuscar={() => buscar(1, filtros)}
         />
 
-        {/* Título */}
-        <h1 className="text-center text-5xl font-shadowslight text-jobit-orange my-10">
-          Jobit
+        {/* Título: logo "Jobit" en letras naranjas, como el frame Buscar-Jobit */}
+        <h1 className="flex justify-center my-10">
+          <img src={logoLetras} alt="Jobit" className="h-10 w-auto" />
         </h1>
 
         {/* Resultados */}
