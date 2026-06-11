@@ -1,22 +1,44 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { ApiError, login } from "@/api";
 
 type LoginFormData = {
-  usuario: string;
+  email: string;
   password: string;
   remember: boolean;
 };
-export default function Login(){
+
+export default function Login() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>();
 
-  const onSubmit = (data: LoginFormData) => {
-    console.log("Datos enviados:", data);
-    alert("✅ Inicio de sesión simulado correctamente");
+  const onSubmit = async (data: LoginFormData) => {
+    setLoading(true);
+    try {
+      const result = await login({ email: data.email, password: data.password });
+      await Swal.fire({
+        title: `¡Bienvenido, ${result.user.nombre}!`,
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      navigate("/");
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "No se pudo conectar con el servidor";
+      Swal.fire({ title: "Error al iniciar sesión", text: message, icon: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,25 +60,31 @@ export default function Login(){
 
           {/* Formulario */}
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
-            {/* Usuario */}
+            {/* Email */}
             <div>
               <label
-                htmlFor="usuario"
+                htmlFor="email"
                 className="block mb-2 text-lg text-gray-900 font-semibold"
               >
-                Nombre de Usuario
+                E-mail
               </label>
               <input
-                type="text"
-                id="usuario"
-                placeholder="Ingrese aquí su nombre de usuario"
-                className={`border border-gray-300 rounded-md block w-full p-3 hover:border-b-red-400 hover:border-b-4 focus:outline-none ${errors.usuario ? "border-red-500" : ""
+                type="email"
+                id="email"
+                placeholder="Ingrese aquí su e-mail"
+                className={`border border-gray-300 rounded-md block w-full p-3 hover:border-b-red-400 hover:border-b-4 focus:outline-none ${errors.email ? "border-red-500" : ""
                   }`}
-                {...register("usuario", { required: "Campo obligatorio" })}
+                {...register("email", {
+                  required: "Campo obligatorio",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "Ingrese un e-mail válido",
+                  },
+                })}
               />
-              {errors.usuario && (
+              {errors.email && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.usuario.message}
+                  {errors.email.message}
                 </p>
               )}
             </div>
@@ -107,9 +135,10 @@ export default function Login(){
             {/* Botón Ingresar */}
             <button
               type="submit"
-              className="w-full bg-[#78499A] text-white text-xl font-medium rounded-md block p-3 hover:bg-[#653d84] transition"
+              disabled={loading}
+              className="w-full bg-[#78499A] text-white text-xl font-medium rounded-md block p-3 hover:bg-[#653d84] transition disabled:opacity-60"
             >
-              Ingresar
+              {loading ? "Ingresando..." : "Ingresar"}
             </button>
 
             {/* Línea divisoria */}

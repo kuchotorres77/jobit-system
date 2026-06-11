@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Sexo {
+  FEMENINO
+  MASCULINO
+}
+
+enum DiaSemana {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+  FERIADOS
+}
+
+enum TipoContacto {
+  FIJO
+  CELULAR
+}
+
+model User {
+  id          String        @id @default(uuid())
+  nombre      String
+  apellido    String
+  documento   String        @unique
+  email       String        @unique
+  password    String
+  sexo        Sexo?
+  prestador   Prestador?
+  contactos   Contacto[]
+  direcciones Direccion[]
+  archivos    StorageFile[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("users")
+}
+
+model Contacto {
+  id     String       @id @default(uuid())
+  tipo   TipoContacto
+  valor  String
+  activo Boolean      @default(true)
+  userId String
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("contactos")
+}
+
+model Direccion {
+  id           String  @id @default(uuid())
+  calle        String
+  codigoPostal String
+  provincia    String
+  departamento String?
+  localidad    String?
+  barrio       String?
+  pais         String  @default("Argentina")
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("direcciones")
+}
+
+model Prestador {
+  id          String     @id @default(uuid())
+  descripcion String?
+  userId      String     @unique
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  servicios   Servicio[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("prestadores")
+}
+
+model Rubro {
+  id        String     @id @default(uuid())
+  nombre    String     @unique
+  subrubros Subrubro[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("rubros")
+}
+
+model Subrubro {
+  id        String     @id @default(uuid())
+  nombre    String
+  rubroId   String
+  rubro     Rubro      @relation(fields: [rubroId], references: [id], onDelete: Cascade)
+  servicios Servicio[]
+
+  @@unique([rubroId, nombre])
+  @@map("subrubros")
+}
+
+model Servicio {
+  id               String           @id @default(uuid())
+  prestadorId      String
+  prestador        Prestador        @relation(fields: [prestadorId], references: [id], onDelete: Cascade)
+  subrubroId       String
+  subrubro         Subrubro         @relation(fields: [subrubroId], references: [id])
+  zonaCobertura    String[]
+  disponibilidades Disponibilidad[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([prestadorId, subrubroId])
+  @@map("servicios")
+}
+
+model Disponibilidad {
+  id         String      @id @default(uuid())
+  servicioId String
+  servicio   Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  dias       DiaSemana[]
+  desde      String
+  hasta      String
+
+  @@map("disponibilidades")
+}
+
+model StorageFile {
+  id        String   @id @default(uuid())
+  fileName  String
+  path      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("storage_files")
+}

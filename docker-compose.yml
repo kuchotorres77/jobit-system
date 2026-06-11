@@ -1,5 +1,33 @@
 services:
 
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-jobit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jobit}
+      POSTGRES_DB: ${POSTGRES_DB:-jobit}
+    ports:
+      - "5435:5432"
+    volumes:
+      - vpostgres:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  # api-nest reemplazará a api cuando se complete la migración a NestJS + Prisma
+  api-nest:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3000"
+    env_file:
+      - ./apps/api/.env.docker
+    depends_on:
+      - postgres
+    networks:
+      - backend
+      - frontend-net
+
   mongodb:
     image: mongo:8.0.0-noble
     volumes:
@@ -34,6 +62,7 @@ services:
 
 volumes:
   vmongo:
+  vpostgres:
 
 networks:
   backend:

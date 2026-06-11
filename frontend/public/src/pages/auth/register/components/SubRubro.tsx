@@ -22,6 +22,7 @@ interface SubRubro {
 }
 interface SubRubroProps {
   subRubroArray: SubRubro[];
+  subrubrosOptions?: string[];
   limit?: number;
   onChange: (data: SubRubro[]) => void;
 }
@@ -38,11 +39,11 @@ const subRubroBase: SubRubro = {
 };
 export const SubRubroComponent = ({
   subRubroArray,
+  subrubrosOptions = [],
   limit = 10,
   onChange,
 }: SubRubroProps) => {
-  const subrubrosOptions = ["Opción 1", "Opción 2", "Opción 3"];
-  const departamentosOpt = ["Capital", "Rawson", "Pocito"];
+  const departamentosOpt = ["Capital", "Rawson", "Pocito", "Rivadavia", "Chimbas", "Santa Lucía"];
   const diasOpt = [
     "Lunes",
     "Martes",
@@ -51,6 +52,7 @@ export const SubRubroComponent = ({
     "Viernes",
     "Sábado",
     "Domingo",
+    "Feriados",
   ];
 
   useEffect(() => {

@@ -1,8 +1,22 @@
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import { NavbarUser, Footer, JobitInput, JobitDiaHora, JobitSelect } from "@/components";
+import Swal from "sweetalert2";
+import { NavbarUser, Footer, JobitInput, JobitSelect } from "@/components";
 import { SubRubroComponent } from "./components/SubRubro";
-import { useState } from "react";
+import {
+  ApiError,
+  createPrestador,
+  getRubros,
+  login,
+  registerUser,
+  DiaSemana,
+  Rubro,
+  ServicioPayload,
+  Sexo,
+} from "@/api";
+
 interface Disponibilidad {
   dia: string[];
   desde: string;
@@ -13,29 +27,184 @@ interface SubRubro {
   zonaCobertura: string[];
   disponibilidad: Disponibilidad[];
 }
+
+interface RegisterFormData {
+  first_name: string;
+  last_name: string;
+  dni: string;
+  street_address: string;
+  number_address: string;
+  postal_code: string;
+  email: string;
+  phone: string;
+  password: string;
+  password_confirm: string;
+  descripcion: string;
+}
+
+const DIA_API: Record<string, DiaSemana> = {
+  Lunes: "LUNES",
+  Martes: "MARTES",
+  Miércoles: "MIERCOLES",
+  Jueves: "JUEVES",
+  Viernes: "VIERNES",
+  Sábado: "SABADO",
+  Domingo: "DOMINGO",
+  Feriados: "FERIADOS",
+};
+
+const normalizarDia = (dia: string): DiaSemana =>
+  DIA_API[dia] ?? (dia.toUpperCase() as DiaSemana);
+
 export default function Register() {
-  const { register, handleSubmit, control, watch } = useForm({
+  const navigate = useNavigate();
+  const { register, handleSubmit } = useForm<RegisterFormData>({
     defaultValues: {
       first_name: "",
       last_name: "",
       dni: "",
-      sexo: "",
       street_address: "",
       number_address: "",
       postal_code: "",
-      provincia: "",
-      departamento: "",
-      localidad: "",
       email: "",
-      telefono: "",
+      phone: "",
+      password: "",
+      password_confirm: "",
       descripcion: "",
-      rubros: "",
-      subrubros: [],
     },
   });
+
   const [subRubros, setSubRubros] = useState<SubRubro[]>([]);
-  const onSubmit = (data: any) => {
-    console.log("FORM DATA:", data);
+  const [rubros, setRubros] = useState<Rubro[]>([]);
+  const [sexo, setSexo] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getRubros()
+      .then(setRubros)
+      .catch(() => {
+        Swal.fire({
+          title: "No se pudieron cargar los rubros",
+          text: "Verifique que el servidor esté disponible.",
+          icon: "warning",
+        });
+      });
+  }, []);
+
+  // Opciones "Rubro — Subrubro" y mapa etiqueta → subrubroId
+  const { subrubroOptions, subrubroIdPorEtiqueta } = useMemo(() => {
+    const opciones: string[] = [];
+    const mapa = new Map<string, string>();
+    for (const rubro of rubros) {
+      for (const subrubro of rubro.subrubros) {
+        const etiqueta = `${rubro.nombre} — ${subrubro.nombre}`;
+        opciones.push(etiqueta);
+        mapa.set(etiqueta, subrubro.id);
+      }
+    }
+    return { subrubroOptions: opciones, subrubroIdPorEtiqueta: mapa };
+  }, [rubros]);
+
+  const construirServicios = (): ServicioPayload[] | null => {
+    const servicios: ServicioPayload[] = [];
+
+    for (const item of subRubros) {
+      if (!item.nombre) continue;
+
+      const subrubroId = subrubroIdPorEtiqueta.get(item.nombre);
+      if (!subrubroId) continue;
+
+      const disponibilidades = item.disponibilidad
+        .filter((d) => d.dia.length > 0 && d.desde && d.hasta)
+        .map((d) => ({
+          dias: d.dia.map(normalizarDia),
+          desde: d.desde,
+          hasta: d.hasta,
+        }));
+
+      if (item.zonaCobertura.length === 0 || disponibilidades.length === 0) {
+        return null;
+      }
+
+      servicios.push({ subrubroId, zonaCobertura: item.zonaCobertura, disponibilidades });
+    }
+
+    return servicios.length > 0 ? servicios : null;
+  };
+
+  const onSubmit = async (data: RegisterFormData) => {
+    if (!data.first_name || !data.last_name || !data.dni || !data.email) {
+      Swal.fire({
+        title: "Faltan datos personales",
+        text: "Nombre, apellido, documento y e-mail son obligatorios.",
+        icon: "warning",
+      });
+      return;
+    }
+
+    if (data.password.length < 8) {
+      Swal.fire({
+        title: "Contraseña muy corta",
+        text: "Debe tener al menos 8 caracteres.",
+        icon: "warning",
+      });
+      return;
+    }
+
+    if (data.password !== data.password_confirm) {
+      Swal.fire({
+        title: "Las contraseñas no coinciden",
+        icon: "warning",
+      });
+      return;
+    }
+
+    const servicios = construirServicios();
+    if (!servicios) {
+      Swal.fire({
+        title: "Servicios incompletos",
+        text: "Seleccione al menos un subrubro con zona de cobertura y disponibilidad (días y horario).",
+        icon: "warning",
+      });
+      return;
+    }
+
+    const sexoPayload: Sexo | undefined =
+      sexo === "femenino" ? "FEMENINO" : sexo === "masculino" ? "MASCULINO" : undefined;
+
+    setLoading(true);
+    try {
+      await registerUser({
+        nombre: data.first_name,
+        apellido: data.last_name,
+        documento: data.dni,
+        email: data.email,
+        password: data.password,
+        sexo: sexoPayload,
+      });
+
+      await login({ email: data.email, password: data.password });
+
+      await createPrestador({
+        descripcion: data.descripcion || undefined,
+        servicios,
+      });
+
+      await Swal.fire({
+        title: "¡Registro exitoso!",
+        text: "Tu perfil de prestador ya está creado.",
+        icon: "success",
+      });
+      navigate("/");
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "No se pudo conectar con el servidor";
+      Swal.fire({ title: "Error en el registro", text: message, icon: "error" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,7 +223,7 @@ export default function Register() {
           Para hacer un Jobit y ofrecer tu servicio, necesitas registrarte y crear tu cuenta.
         </h2>
         <h2 className="text-lg font-semibold text-center">
-          ¡Es muy sensillo y solo te llevará un minuto!
+          ¡Es muy sencillo y solo te llevará un minuto!
         </h2>
       </div>
 
@@ -90,26 +259,20 @@ export default function Register() {
                 </div>
                 <div className="sm:col-span-1">
                   <JobitSelect
-                    label="Genero"
-                    options={["femenino", "masculino", " No Binario"]}
-                    onChange={(val: any) => console.log(val)}
+                    label="Género"
+                    options={["femenino", "masculino"]}
+                    value={sexo}
+                    onChange={(val) => setSexo(val as string)}
                   />
                 </div>
-                {/* <div className="sm:col-span-3">
-                  <JobitSelect
-                    label="Zona de Cobertura"
-                    multiple
-                    limit={2}
-                    options={["Capital", "Rawson", "Pocito", "Rivadavia"]}
-                    onChange={(v: any) => console.log(v)}
-                  />
-                </div> */}
               </div>
             </div>
           </section>
+
+          {/* CUENTA Y CONTACTO */}
           <section>
             <h2 className="text-base text-gray-500 text-right font-semibold" >
-              Contacto
+              Cuenta y Contacto
             </h2>
             <div className="border-t border-gray-400 pb-12">
               <div className="mt-6 grid sm:grid-cols-6 gap-6">
@@ -118,6 +281,7 @@ export default function Register() {
                     label={"E-mail"}
                     register={register}
                     name={"email"}
+                    type="email"
                   />
                 </div>
                 <div className="sm:col-span-3">
@@ -128,16 +292,33 @@ export default function Register() {
                     type="number"
                   />
                 </div>
+                <div className="sm:col-span-3">
+                  <JobitInput
+                    label={"Contraseña"}
+                    register={register}
+                    name={"password"}
+                    type="password"
+                  />
+                </div>
+                <div className="sm:col-span-3">
+                  <JobitInput
+                    label={"Repetir Contraseña"}
+                    register={register}
+                    name={"password_confirm"}
+                    type="password"
+                  />
+                </div>
               </div>
             </div>
           </section>
+
+          {/* DOMICILIO */}
           <section>
             <h2 className="text-base text-gray-500 text-right font-semibold" >
               Domicilio
             </h2>
             <div className="border-t border-gray-400 pb-12">
               <div className="mt-6 grid sm:grid-cols-6 gap-6">
-                {/* Dirección */}
                 <div className="sm:col-span-4">
                   <JobitInput
                     label={"Dirección"}
@@ -145,7 +326,6 @@ export default function Register() {
                     name={"street_address"}
                   />
                 </div>
-                {/* number_address */}
                 <div className="sm:col-span-1">
                   <JobitInput
                     label={"N°"}
@@ -154,7 +334,6 @@ export default function Register() {
                     type="number"
                   />
                 </div>
-                {/* Código Postal */}
                 <div className="sm:col-span-1">
                   <JobitInput
                     label={"Código Postal"}
@@ -163,36 +342,35 @@ export default function Register() {
                     type="number"
                   />
                 </div>
-                {/* Provincia */}
                 <div className="sm:col-span-2">
                   <JobitSelect
                     label="Provincia"
                     limit={2}
                     options={["San Juan", "Mendoza", "San Luis", "La Rioja"]}
-                    onChange={(v: any) => console.log(v)}
+                    onChange={() => undefined}
                   />
                 </div>
-                {/* Departamento */}
                 <div className="sm:col-span-2">
                   <JobitSelect
                     label="Departamento"
                     limit={2}
                     options={["Capital", "Rawson", "Pocito", "Rivadavia"]}
-                    onChange={(v: any) => console.log(v)}
+                    onChange={() => undefined}
                   />
                 </div>
-                {/* Localidad */}
                 <div className="sm:col-span-2">
                   <JobitSelect
                     label="Localidad"
                     limit={2}
                     options={["Villa Aberastain", "Villa Krause", "Concepción", "Villa Barboza"]}
-                    onChange={(v: any) => console.log(v)}
+                    onChange={() => undefined}
                   />
                 </div>
               </div>
             </div>
           </section>
+
+          {/* DESCRIPCIÓN */}
           <section>
             <label htmlFor="descripcion" className="block text-base text-gray-500 text-right font-semibold">
               Descripción de Perfil
@@ -201,40 +379,48 @@ export default function Register() {
             <div className="border-t border-gray-400 pb-12 mt-1">
               <textarea
                 id="descripcion"
-                name="descripcion"
                 placeholder="Escribe aquí en pocas palabras, tus habilidades y lo que sabes hacer."
                 rows={4}
-                className="mt-6 w-full border border-gray-300 rounded-md py-1.5 px-3 
+                className="mt-6 w-full border border-gray-300 rounded-md py-1.5 px-3
                  focus:outline-none focus:border-blue-700"
+                {...register("descripcion")}
               />
             </div>
           </section>
+
+          {/* SERVICIOS */}
           <section>
             <h2 className="text-base text-gray-500 text-right font-semibold" >
               Servicios
             </h2>
             <h3 className="border-t border-gray-400 text-sm text-gray-500 text-center font-semibold pb-10" >
-              Si el rubro que desea seleccionar no se encuentra en nuestra lista, informarlo a travez de la opción "Solicitar Registrar Rubro". <br />
-              Ingresar al día siguiente intentar registrarse nuevamente.
+              Si el rubro que desea seleccionar no se encuentra en nuestra lista, informarlo a través de la opción "Solicitar Registrar Rubro". <br />
+              Ingresar al día siguiente e intentar registrarse nuevamente.
             </h3>
             <div className="pb-12">
               <SubRubroComponent
                 subRubroArray={subRubros}
+                subrubrosOptions={subrubroOptions}
                 onChange={setSubRubros}
               />
-              {/* <JobitDiaHora diasOpt={["Lunes", "Martes"]} /> */}
             </div>
           </section>
+
           <div className="mt-6 flex justify-end gap-6">
-            <button type="button" className="text-sm font-semibold">
+            <button
+              type="button"
+              className="text-sm font-semibold"
+              onClick={() => navigate("/")}
+            >
               Cancelar
             </button>
 
             <button
               type="submit"
-              className="rounded-md bg-orange-400 px-3 py-2 text-sm text-white"
+              disabled={loading}
+              className="rounded-md bg-orange-400 px-3 py-2 text-sm text-white disabled:opacity-60"
             >
-              Registrarme
+              {loading ? "Registrando..." : "Registrarme"}
             </button>
           </div>
         </form>
