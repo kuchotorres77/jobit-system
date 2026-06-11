@@ -19,7 +19,8 @@ services:
       context: ./apps/api
       dockerfile: Dockerfile
     ports:
-      - "3005:3000"
+      # 13005: fuera de los rangos dinámicos que Windows/Hyper-V reserva (netsh interface ipv4 show excludedportrange)
+      - "13005:3000"
     env_file:
       - ./apps/api/.env.docker
     depends_on:
