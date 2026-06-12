@@ -4,13 +4,13 @@ Priority actions queue. Entries older than 14 days should be purged.
 
 ---
 
-## [2026-06-10] → To: Dev
+## [2026-06-10] → To: Dev — ✅ RESUELTO (2026-06-12)
 
 **Subject:** Persistir teléfono y domicilio en el registro
 **Priority:** Medium
-**Action Required:** Yes
+**Action Required:** No
 
-El form de Register captura teléfono y domicilio pero la API no los recibe aún. Las tablas `Contacto` y `Direccion` ya existen en el schema Prisma: agregar campos opcionales al RegisterDto (o endpoint de perfil) y enviarlos desde el frontend. Las opciones de provincia/departamento/localidad siguen hardcodeadas.
+Resuelto: `RegisterDto` acepta `telefono` y `direccion` opcionales (DTO anidado validado); el repository los crea como `Contacto` (CELULAR) y `Direccion` anidados. El Register envía teléfono y domicilio (los selects de provincia/departamento/localidad ahora capturan su valor; siguen hardcodeados). El listado público expone `user.contactos` y cards/detalle muestran el celular con fallback a email. Verificado E2E vía proxy nginx. Las opciones de provincia/departamento/localidad siguen hardcodeadas.
 
 ---
 

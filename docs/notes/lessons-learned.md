@@ -32,13 +32,13 @@ Permanent record of knowledge acquired during project development.
 
 ## Architecture Decisions
 
-- Monorepo simple sin Nx/Turborepo: `apps/api-service` (Express + MongoDB) y `frontend/public` (React + Vite) se despliegan de forma independiente.
-- Rutas del API auto-cargadas desde `src/routes/` y montadas bajo `/api`.
+- Monorepo simple sin Nx/Turborepo (npm workspaces `apps/*` + `frontend/*`): `apps/api` (NestJS + Prisma + PostgreSQL) y `frontend/public` (React + Vite).
+- El backend legado `apps/api-service` (Express + MongoDB) se eliminó el 2026-06-12 al completarse la migración a NestJS.
+- API con prefijo global `/api`; el frontend la consume same-origin vía proxy nginx.
 
 ---
 
 ## Special Configurations
 
-- Vite dev server fijado en `192.168.1.11:5173` (IP de red local, no localhost).
-- Puerto API en Docker: `3000:3000`; MongoDB expuesto en `28017:27017`.
+- Puertos Docker: postgres `5435`, api-nest `13005` (3000-3002/5433/5434/6379 los usa queue-system; 3005 cae en rangos reservados de WinNAT), frontend `80`.
 - Alias de paths frontend: `@/*` → `src/*`.

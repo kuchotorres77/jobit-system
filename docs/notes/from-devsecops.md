@@ -4,12 +4,12 @@ Communication from DevSecOps to other agents. Entries older than 14 days should 
 
 ---
 
-## [2026-06-10] → To: All
+## [2026-06-10] → To: All — ✅ RESUELTO (2026-06-12)
 
 **Subject:** Endpoints sin protección JWT
 **Priority:** Medium
-**Action Required:** Yes
+**Action Required:** No
 
-`PUT /api/prestador/:id`, `DELETE /api/prestador/:id` y `POST /api/rubro/create` no exigen autenticación. Cualquier cliente puede modificar o eliminar prestadores y crear rubros. Agregar el middleware `checkJwt` (`src/middleware/session.ts`) a estas rutas antes de exponer el API públicamente.
+Aplicaba al API legado Express (`apps/api-service`), eliminado el 2026-06-12. En `apps/api` (NestJS) los endpoints equivalentes (`PUT/DELETE /api/prestadores/:id`, `POST /api/rubros`) exigen `JwtAuthGuard` y los de prestador validan ownership.
 
 ---

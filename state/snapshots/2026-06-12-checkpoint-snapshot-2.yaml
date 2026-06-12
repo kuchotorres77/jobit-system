@@ -1,0 +1,22 @@
+checkpoint_date: 2026-06-12
+session_summary: >
+  Sesión 2 del día: auth completa (refresh tokens con rotación + RBAC + login
+  con Google), vista de perfil del proveedor, reviews con evaluación general,
+  favoritos persistidos con su página, fotos de perfil/galería, búsqueda sin
+  tildes, prisma.config.ts y eliminación del backend legado Express+MongoDB.
+commits_created:
+  - sha: 669da56
+    subject: "refactor: eliminar backend legado apps/api-service (Express + MongoDB)"
+  - sha: 8cc6d1f
+    subject: "feat: auth completa, perfil de proveedor, reviews, favoritos y fotos"
+files_modified_count: 53
+files_created_count: 32
+backlog_items_added:
+  - "Bookings/solicitudes (siguiente dominio de la visión)"
+  - "Votos 'Es útil' en opiniones (está en el frame Buscar-Jobit 2)"
+  - "Verificación de email + recupero de contraseña"
+  - "Flujo 'convertirme en proveedor' para cuentas creadas con Google"
+  - "Configurar GOOGLE_CLIENT_ID en .env raíz (decisión/acción del usuario)"
+next_session_recommendation: >
+  Configurar GOOGLE_CLIENT_ID para activar el login con Google (5 min, ya está
+  todo cableado), y arrancar bookings/solicitudes como próximo dominio.

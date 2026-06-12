@@ -12,20 +12,22 @@ JOBIT es una plataforma de publicación de servicios: un usuario registrado publ
 
 Visión completa (ver `.agent/project-context.md`): marketplace con bookings, reviews, geolocalización, portfolio, RBAC administrativo y arquitectura de microservicios (api-gateway, auth-service, provider-service, catalog-service, booking-service, review-service, realtime-service).
 
-### Estado de la migración de backend
+### Estado del backend
 
-**En curso: Express + MongoDB → NestJS + Prisma + PostgreSQL.**
+**Migración Express + MongoDB → NestJS + Prisma + PostgreSQL COMPLETADA** (2026-06-12: `apps/api-service` eliminado del repo).
 
-- `apps/api` (NUEVO): NestJS 11 + Prisma 6 + PostgreSQL 17. Monolito modular con módulos auth, prestadores, rubros, storage — diseñado para poder dividirse en los microservicios de la visión.
-- `apps/api-service` (LEGADO): Express + Mongoose. Solo referencia; no agregar features.
-- Frontend `frontend/public` (React + Vite): aún apunta a la API legada; migrar consumo a rutas nuevas.
+- `apps/api`: NestJS 11 + Prisma 6 (config en `prisma.config.ts`) + PostgreSQL 17. Monolito modular: auth, prestadores, reviews, favoritos, rubros, storage.
+- Frontend `frontend/public` (React + Vite): consume la API nueva same-origin vía proxy nginx.
 
 ### Completed Features
 
-- **apps/api (nuevo)**: auth (register/login JWT 2h + bcrypt), CRUD prestadores con ownership, rubros + subrubros, upload (Multer, campo `myfile`, 5 MB), paginación `{data, meta}`, rate limiting (global 100/min, auth 10/min), validación DTO global, excepciones de dominio + filtro, repository pattern, 15 tests unitarios pasando, Dockerfile multi-stage, migración Prisma `init` aplicada
-- Esquema Prisma: User, Prestador (1:1 User), Rubro, Subrubro, Servicio (zonaCobertura[]), Disponibilidad, Contacto, Direccion, StorageFile; enums Sexo, DiaSemana, TipoContacto
-- docker-compose: agregado `postgres:17-alpine` (host **5435**) y `api-nest` (host **3005**) — los puertos 3000-3002/5433/5434/6379 los ocupa otro proyecto (queue-system) corriendo en Docker en esta máquina
-- Smoke test E2E manual OK: register → login → crear rubro → crear prestador con servicio/disponibilidad → listado público → 401 sin token
+- **Auth**: register (rol PROVIDER directo) / login JWT + **refresh tokens** opacos con rotación y detección de reuso / **login con Google** (GIS; crea CUSTOMER si no existe; requiere `GOOGLE_CLIENT_ID`) / logout con revocación / **RBAC** (`Role` CUSTOMER/PROVIDER/ADMIN, `@Roles` + `RolesGuard`; `POST /rubros` solo ADMIN) / `GET-PUT /auth/me` (datos + teléfono + domicilio)
+- **Prestadores**: CRUD con ownership, `GET /prestadores/me`, listado público con filtros (`q` insensible a tildes vía `unaccent`) + `rating` agregado por página, teléfono/domicilio persistidos desde el register
+- **Reviews**: puntaje 1-5 + comentario, única por usuario/prestador (upsert), resumen con promedio/distribución, dueño bloqueado
+- **Favoritos**: persistidos, endpoints idempotentes, página "Mis favoritos" paginada
+- **Storage**: upload solo imágenes (5 MB), `GET /upload/:id` público, fotos en cards/detalle/perfil, volumen `vstorage`
+- Frontend: `/servicios` (+rating y corazón persistido), `/servicios/:id` (+opiniones y evaluación general según frame Figma), `/perfil` (config completa del proveedor), `/favoritos`, login con botón de Google y botones unificados (Roboto 40px)
+- Infra: Swagger en `/api/docs`, rate limiting, 43 tests unitarios, 6 migraciones Prisma, seed completo (10 prestadores demo + 30 opiniones + `admin@jobit.demo`, password `Jobit123!`)
 
 ### In Progress
 
@@ -34,6 +36,41 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 ---
 
 ## Activity Log
+
+## [2026-06-12] Agent: Claude (sesión 2) — Auth completa, perfil, reviews, favoritos, limpieza del legado
+
+### Completed
+- **Teléfono/domicilio del register** (next-action 2026-06-10, resuelto): `RegisterDto` con `telefono` y `direccion` opcionales → `Contacto`/`Direccion` anidados; cards y detalle muestran el celular (fallback email); selects de domicilio ahora capturan su valor
+- **Búsqueda insensible a tildes**: extensión `unaccent` (preview `postgresqlExtensions`) + query raw para resolver ids del filtro `q`
+- **Legado eliminado**: `apps/api-service` completo + bloques comentados y `vmongo` del compose; `docs/overview.md` reescrito al stack actual; nota de DevSecOps marcada resuelta
+- **`prisma.config.ts`**: migrado desde `package.json#prisma` (la CLI deja de cargar `.env` sola → `import 'dotenv/config'`); `prisma` movida a dependencies — el `migrate deploy` del boot **bajaba la CLI del registry en cada arranque**
+- **Refresh tokens + RBAC**: tokens opacos (SHA-256 en DB) con rotación y detección de reuso que revoca la familia; `JWT_REFRESH_TTL_DAYS` (default 7); enum `Role`, `@Roles` + `RolesGuard`, `POST /rubros` solo ADMIN; crear prestador promueve a PROVIDER; el cliente web renueva en 401 (deduplicado) y el logout revoca
+- **Fotos de perfil/galería**: `GET /api/upload/:id` público con content-type, fileFilter solo imágenes, `archivos` en payload de prestadores, volumen `vstorage`, foto en cards/banner/galería, input de foto en register
+- **Vista `/perfil`**: `GET/PUT /api/auth/me` + `GET /api/prestadores/me`; edita datos, teléfono/domicilio, descripción, fotos y CRUD de servicios con disponibilidad (reutiliza `SubRubroComponent`; `JobitSelect`/`JobitDiaHora` ahora sincronizan el `value` externo — antes ignoraban datos precargados)
+- **Login con Google**: `POST /api/auth/google` verifica el ID token (`google-auth-library`); `password`/`documento` pasaron a nullable; crea cuenta CUSTOMER si el email no existe; botón GIS en el login, oculto sin `GOOGLE_CLIENT_ID` (se configura una vez en el `.env` raíz y alimenta backend + build del frontend)
+- **Registro como proveedor**: `register` crea rol PROVIDER directo; botón del login dice "Registrate como Proveedor"
+- **Botones del login unificados**: stack ≤400px (límite del botón de GIS), 40px de alto, Roboto 500 14px (fuente agregada vía Google Fonts + `font-roboto` en Tailwind); el botón de Google se renderiza con el ancho medido (ResizeObserver)
+- **Reviews según frame Figma Buscar-Jobit 2** [2072:928]: modelo `Review` (1-5 + comentario, única por usuario/prestador, upsert), `GET` lista paginada + resumen (promedio/total/distribución), `POST`/`GET mia`/`DELETE mia`; detalle con "Opiniones destacadas", "Evaluación general" (histograma) y form con estrellas (sin sesión → invita a login; dueño bloqueado 403); 30 opiniones demo en seed
+- **Rating en cards + favoritos** según frame Buscar-Jobit [2052:496]: `GET /prestadores` incluye `rating` (un `groupBy` por página); tabla `Favorito` + endpoints idempotentes; corazón con toggle optimista y prompt de login
+- **Página `/favoritos`**: `GET /api/favoritos/prestadores` paginado con rating, orden último-guardado-primero; quitar no borra la card (permite deshacer)
+- 43 tests unitarios pasando; 5 migraciones nuevas (`unaccent`, `roles_y_refresh_tokens`, `google_login`, `reviews`, `favoritos`); stack Docker redesplegado y cada feature verificada E2E vía proxy
+
+### Decisiones / incidentes
+- `apps/api-service/.env.docker` estaba **trackeado en git** → las credenciales del Mongo legado quedan en la historia; rotar si se reutilizaron en otro lado
+- Cuentas de Google nacen CUSTOMER sin documento/password — el flujo "completar perfil de proveedor" para esas cuentas queda pendiente
+- Tokens emitidos antes del RBAC no traen `role` → sesiones viejas necesitan re-login para endpoints con guard de rol
+- API de Figma: rate limit (429) con pocas llamadas seguidas — espaciar requests entre render de frames
+
+### Pendiente de decisión del usuario
+- Crear el OAuth Client ID en Google Cloud Console y setear `GOOGLE_CLIENT_ID` en el `.env` raíz para habilitar el login con Google
+
+### Next Steps
+- Bookings/solicitudes (siguiente dominio de la visión)
+- Votos "Es útil" en opiniones (está en el frame; necesita tabla de votos)
+- Verificación de email + recupero de contraseña
+- Flujo "convertirme en proveedor" para cuentas creadas con Google
+
+---
 
 ## [2026-06-12] Agent: Claude — Fix assets de producción, rename de imágenes, Swagger
 
