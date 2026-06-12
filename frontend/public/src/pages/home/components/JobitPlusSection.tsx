@@ -1,3 +1,5 @@
+import mujerOkImg from "@/assets/img/mujerok.png";
+
 type JobitPlusSectionProps = {
   title?: string;
   description?: string;
@@ -19,7 +21,7 @@ export const JobitPlusSection = ({
   titleColor = "#FAAB30",
   textColor = "#78499A",
   buttonColor = "#78499A",
-  imageSrc = "/src/assets/img/MujerOK.png",
+  imageSrc = mujerOkImg,
 }:JobitPlusSectionProps) => {
   return (
     <section

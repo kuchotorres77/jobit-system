@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react"
+import municRivadavia from "@/assets/img/munic.rivadavia1.png"
+import rawsonMunci from "@/assets/img/rawsonmunci.png"
+import municPocito from "@/assets/img/municpocito1.png"
+import gobSanJuan from "@/assets/img/gobsanjuan.png"
+import unsj from "@/assets/img/unsj1.png"
 
-const images = [
-  "/assets/img/MUNIC.RIVADAVIA1.png",
-  "/assets/img/RAWSONMUNCI.png",
-  "/assets/img/MUNICPOCITO1.png",
-  "/assets/img/GobSanJuan.png",
-  "/assets/img/UNSJ1.png",
-]
+const images = [municRivadavia, rawsonMunci, municPocito, gobSanJuan, unsj]
 
 export default function ImageSlider() {
   const [currentIndex, setCurrentIndex] = useState(0)

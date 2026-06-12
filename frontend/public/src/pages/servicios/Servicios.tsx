@@ -5,7 +5,7 @@ import { NavbarUser, Footer } from "@/components";
 import { ApiError, getPrestadores, getRubros, Prestador, Rubro } from "@/api";
 import { PrestadorCard } from "./components/PrestadorCard";
 import { SearchBar, SearchValues, SIN_FILTRO } from "./components/SearchBar";
-import logoLetras from "@/assets/img/logo LetrasJobit.png";
+import logoLetras from "@/assets/img/logo-letrasjobit.png";
 
 const PAGE_SIZE = 12;
 

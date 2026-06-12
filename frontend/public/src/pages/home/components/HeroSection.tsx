@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import tecnicoPc from "@/assets/img/tecnico_pc.png";
+import logoLetras from "@/assets/img/logo-letrasjobit.png";
+import vectorBadge from "@/assets/img/vector.png";
 
 type HeroSectionProps = {
     title?: string;
@@ -13,9 +16,9 @@ export const HeroSection = ({
     title = "Encontrame",
     subtitle = "Busca y encuentra prestadores de servicios calificados.",
     ctaText = "Buscar",
-    bgSrc = "/src/assets/img/tecnico_pc.png",
-    logoSrc = "/src/assets/img/logo LetrasJobit.png",
-    badgeSrc = "/src/assets/img/Vector.png",
+    bgSrc = tecnicoPc,
+    logoSrc = logoLetras,
+    badgeSrc = vectorBadge,
 }: HeroSectionProps) => {
 
     return (

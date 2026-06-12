@@ -1,4 +1,5 @@
 import React from "react";
+import capacitacionImg from "@/assets/img/capacitacion_1.png";
 
 type CapacitateSectionProps = {
     title?: string;
@@ -21,7 +22,7 @@ export const CapacitateSection = ({
     titleColor = "#FAAB30",
     textColor = "#78499A",
     buttonColor = "#78499A",
-    imageSrc = "/src/assets/img/Capacitacion_1.png",
+    imageSrc = capacitacionImg,
 }: CapacitateSectionProps) => {
     return (
         <section

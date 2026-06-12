@@ -4,6 +4,11 @@ import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import municRivadavia from "@/assets/img/munic.rivadavia1.png";
+import rawsonMunci from "@/assets/img/rawsonmunci.png";
+import municPocito from "@/assets/img/municpocito1.png";
+import gobSanJuan from "@/assets/img/gobsanjuan.png";
+import unsj from "@/assets/img/unsj1.png";
 
 type ServicesCarouselSectionProps = {
   title?: string;
@@ -26,13 +31,7 @@ export const ServicesCarouselSection = ({
   bgColor = "#ffffff",
   titleColor = "#FAAB30",
   buttonColor = "#EF933A",
-  images = [
-    "/src/assets/img/MUNIC.RIVADAVIA1.png",
-    "/src/assets/img/RAWSONMUNCI.png",
-    "/src/assets/img/MUNICPOCITO1.png",
-    "/src/assets/img/GobSanJuan.png",
-    "/src/assets/img/UNSJ1.png",
-  ],
+  images = [municRivadavia, rawsonMunci, municPocito, gobSanJuan, unsj],
   autoplay = true,
   delay = 3000,
   slidesPerView = 4,

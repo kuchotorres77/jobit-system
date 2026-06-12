@@ -1,3 +1,5 @@
+import herramientasImg from "@/assets/img/herramientas_1.png";
+
 interface PromocionalosSectionProps {
     linkRef?: string; // link de referencia
     imageSrc?: string;
@@ -8,7 +10,7 @@ interface PromocionalosSectionProps {
 
 export const PromocionalosSection = ({
     linkRef = "#",
-    imageSrc = "/src/assets/img/Herramientas_1.png",
+    imageSrc = herramientasImg,
     title = "Promocionalos",
     description =
     "Registrá tus servicios totalmente gratis y promocionales. Mucha gente te está buscando.",

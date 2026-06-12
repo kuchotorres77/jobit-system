@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 import Swal from "sweetalert2";
 import { NavbarUser, Footer, JobitInput, JobitSelect } from "@/components";
+import logoLetra from "@/assets/img/logo-letra.png";
 import { SubRubroComponent } from "./components/SubRubro";
 import {
   ApiError,
@@ -214,7 +215,7 @@ export default function Register() {
         <h1 className="text-3xl font-medium text-center pb-5">
           Ser un
           <img
-            src="src/assets/img/logo-letra.png"
+            src={logoLetra}
             width="120"
             className="inline-block align-middle"
           />

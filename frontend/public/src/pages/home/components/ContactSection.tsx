@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useState } from "react";
+import contactameImg from "@/assets/img/contactame.png";
 
 type ContactFormData = {
   name: string;
@@ -18,7 +19,7 @@ export const ContactSection = ({
   title = "Contactanos",
   highlightColor = "#FAAB30",
   buttonColor = "#EA580C",
-  imageSrc = "/src/assets/img/contactame.png",
+  imageSrc = contactameImg,
 }: ContactSectionProps) => {
   const {
     register,

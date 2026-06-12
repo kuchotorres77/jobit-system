@@ -1,3 +1,9 @@
+import logoLetras from "@/assets/img/logo-letrasjobit.png";
+import facebookIcon from "@/assets/img/facebook1.png";
+import instagramIcon from "@/assets/img/instagram1.png";
+import xIcon from "@/assets/img/x1.png";
+import whatsappIcon from "@/assets/img/whatsapp1.png";
+
 interface FooterProps {
   logoSrc?: string;
   facebookSrc?: string;
@@ -11,11 +17,11 @@ interface FooterProps {
 
 
 export const Footer = ({
-  logoSrc = "/src/assets/img/logo LetrasJobit.png",
-  facebookSrc = "/src/assets/img/Facebook1.png",
-  instagramSrc = "/src/assets/img/Instagram1.png",
-  xSrc = "/src/assets/img/X1.png",
-  whatsappSrc = "/src/assets/img/Whatsapp1.png",
+  logoSrc = logoLetras,
+  facebookSrc = facebookIcon,
+  instagramSrc = instagramIcon,
+  xSrc = xIcon,
+  whatsappSrc = whatsappIcon,
   email = "info@jobit.com",
   whatsappNumber = "+54 9 11 1234-5678",
   companyDescription = "Somos una empresa dedicada a ofrecer soluciones innovadoras.",

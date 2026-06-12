@@ -1,3 +1,6 @@
+import mujerConCel from "@/assets/img/mujer-con-cel.png";
+import whatsappIconImg from "@/assets/img/whatsapp1.png";
+
 interface AgendameSectionProps {
     phone?: string; // Ejemplo: "549XXXXXXXXXX"
     imageSrc?: string;
@@ -9,8 +12,8 @@ interface AgendameSectionProps {
 
 export const AgendameSection = ({
     phone = "549XXXXXXXXXX",
-    imageSrc = "/src/assets/img/Mujer con cel.png",
-    whatsappIcon = "/src/assets/img/Whatsapp1.png",
+    imageSrc = mujerConCel,
+    whatsappIcon = whatsappIconImg,
     title = "Agendame",
     description = "Para agilizar tu búsqueda agendá a Jobit y comunicate desde WhatsApp con nuestro asistente virtual.",
     titleColor = "#78499A",
