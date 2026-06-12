@@ -11,6 +11,14 @@ const prestadorInclude = {
       apellido: true,
       documento: true,
       email: true,
+      contactos: {
+        where: { activo: true },
+        select: { id: true, tipo: true, valor: true },
+      },
+      archivos: {
+        select: { id: true, fileName: true, createdAt: true },
+        orderBy: { createdAt: 'asc' as const },
+      },
     },
   },
   servicios: {
@@ -28,6 +36,15 @@ const prestadorInclude = {
 export type PrestadorCompleto = Prisma.PrestadorGetPayload<{
   include: typeof prestadorInclude;
 }>;
+
+export interface PrestadorRating {
+  promedio: number;
+  total: number;
+}
+
+export type PrestadorConRating = PrestadorCompleto & {
+  rating: PrestadorRating;
+};
 
 export interface PrestadorFilters {
   rubroId?: string;
@@ -59,8 +76,11 @@ export class PrestadoresRepository {
     skip: number,
     take: number,
     filters: PrestadorFilters = {},
-  ): Promise<{ data: PrestadorCompleto[]; total: number }> {
+  ): Promise<{ data: PrestadorConRating[]; total: number }> {
     const where = this.buildWhere(filters);
+    if (filters.q) {
+      where.id = { in: await this.findIdsPorTexto(filters.q) };
+    }
     const [data, total] = await this.prisma.$transaction([
       this.prisma.prestador.findMany({
         skip,
@@ -71,7 +91,37 @@ export class PrestadoresRepository {
       }),
       this.prisma.prestador.count({ where }),
     ]);
-    return { data, total };
+    return { data: await this.adjuntarRatings(data), total };
+  }
+
+  // Calificación promedio de la página en una sola consulta agregada
+  private async adjuntarRatings(
+    prestadores: PrestadorCompleto[],
+  ): Promise<PrestadorConRating[]> {
+    if (prestadores.length === 0) {
+      return [];
+    }
+
+    const grupos = await this.prisma.review.groupBy({
+      by: ['prestadorId'],
+      where: { prestadorId: { in: prestadores.map((p) => p.id) } },
+      _avg: { puntaje: true },
+      _count: { puntaje: true },
+    });
+    const porPrestador = new Map(grupos.map((g) => [g.prestadorId, g]));
+
+    return prestadores.map((prestador) => {
+      const grupo = porPrestador.get(prestador.id);
+      return {
+        ...prestador,
+        rating: {
+          promedio: grupo
+            ? Math.round((grupo._avg.puntaje ?? 0) * 10) / 10
+            : 0,
+          total: grupo?._count.puntaje ?? 0,
+        },
+      };
+    });
   }
 
   private buildWhere(filters: PrestadorFilters): Prisma.PrestadorWhereInput {
@@ -91,15 +141,22 @@ export class PrestadoresRepository {
       where.servicios = { some: servicioFilter };
     }
 
-    if (filters.q) {
-      where.OR = [
-        { descripcion: { contains: filters.q, mode: 'insensitive' } },
-        { user: { nombre: { contains: filters.q, mode: 'insensitive' } } },
-        { user: { apellido: { contains: filters.q, mode: 'insensitive' } } },
-      ];
-    }
-
     return where;
+  }
+
+  // Búsqueda insensible a mayúsculas y tildes (extensión unaccent de Postgres),
+  // fuera del where de Prisma porque su API no soporta unaccent.
+  private async findIdsPorTexto(q: string): Promise<string[]> {
+    const patron = `%${q.replace(/[\\%_]/g, '\\$&')}%`;
+    const rows = await this.prisma.$queryRaw<Array<{ id: string }>>`
+      SELECT p.id
+      FROM prestadores p
+      JOIN users u ON u.id = p."userId"
+      WHERE unaccent(coalesce(p.descripcion, '')) ILIKE unaccent(${patron})
+         OR unaccent(u.nombre) ILIKE unaccent(${patron})
+         OR unaccent(u.apellido) ILIKE unaccent(${patron})
+    `;
+    return rows.map((row) => row.id);
   }
 
   findById(id: string): Promise<PrestadorCompleto | null> {
@@ -107,6 +164,22 @@ export class PrestadoresRepository {
       where: { id },
       include: prestadorInclude,
     });
+  }
+
+  // Devuelve los prestadores respetando el orden de los ids recibidos
+  async findManyPorIds(ids: string[]): Promise<PrestadorConRating[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+    const data = await this.prisma.prestador.findMany({
+      where: { id: { in: ids } },
+      include: prestadorInclude,
+    });
+    const conRating = await this.adjuntarRatings(data);
+    const porId = new Map(conRating.map((p) => [p.id, p]));
+    return ids
+      .map((id) => porId.get(id))
+      .filter((p): p is PrestadorConRating => p !== undefined);
   }
 
   findByUserId(userId: string): Promise<PrestadorCompleto | null> {

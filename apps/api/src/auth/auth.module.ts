@@ -4,6 +4,8 @@ import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { GoogleAuthService } from './google-auth.service';
+import { RefreshTokensRepository } from './refresh-tokens.repository';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { UsersRepository } from './users.repository';
 
@@ -24,7 +26,13 @@ import { UsersRepository } from './users.repository';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, UsersRepository, JwtStrategy],
+  providers: [
+    AuthService,
+    UsersRepository,
+    RefreshTokensRepository,
+    GoogleAuthService,
+    JwtStrategy,
+  ],
   exports: [UsersRepository],
 })
 export class AuthModule {}

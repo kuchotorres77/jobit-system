@@ -1,6 +1,12 @@
-import { getToken } from "./token";
+import {
+  clearSession,
+  getRefreshToken,
+  getToken,
+  saveSession,
+} from "./token";
+import { LoginResult } from "./types";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3005/api";
+export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3005/api";
 
 export class ApiError extends Error {
   constructor(
@@ -18,7 +24,43 @@ interface RequestOptions {
   auth?: boolean;
 }
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+// Una sola renovación en vuelo aunque fallen varias requests a la vez
+let refreshEnCurso: Promise<boolean> | null = null;
+
+async function renovarSesion(): Promise<boolean> {
+  refreshEnCurso ??= (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) return false;
+    try {
+      const response = await fetch(`${API_URL}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+      if (!response.ok) {
+        clearSession();
+        return false;
+      }
+      const data = (await response.json()) as LoginResult;
+      saveSession(data.token, data.user, data.refreshToken);
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  try {
+    return await refreshEnCurso;
+  } finally {
+    refreshEnCurso = null;
+  }
+}
+
+async function request<T>(
+  path: string,
+  options: RequestOptions = {},
+  esReintento = false,
+): Promise<T> {
   const { method = "GET", body, auth = false } = options;
 
   const headers: Record<string, string> = {};
@@ -37,6 +79,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+
+  // Access token vencido: se renueva con el refresh token y se reintenta una vez
+  if (response.status === 401 && auth && !esReintento) {
+    const renovado = await renovarSesion();
+    if (renovado) {
+      return request<T>(path, options, true);
+    }
+  }
 
   if (response.status === 204) {
     return undefined as T;

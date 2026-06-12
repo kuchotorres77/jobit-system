@@ -1,4 +1,10 @@
-import { DiaSemana, PrismaClient, Sexo, TipoContacto } from '@prisma/client';
+import {
+  DiaSemana,
+  PrismaClient,
+  Role,
+  Sexo,
+  TipoContacto,
+} from '@prisma/client';
 import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -591,7 +597,17 @@ async function seedPrestadores(
       where: { email: seed.email },
     });
     if (existing) {
-      console.log(`- ${seed.nombre} ${seed.apellido} ya existe, se omite`);
+      if (existing.role !== Role.PROVIDER) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { role: Role.PROVIDER },
+        });
+        console.log(
+          `- ${seed.nombre} ${seed.apellido} ya existe, rol actualizado a PROVIDER`,
+        );
+      } else {
+        console.log(`- ${seed.nombre} ${seed.apellido} ya existe, se omite`);
+      }
       continue;
     }
 
@@ -603,6 +619,7 @@ async function seedPrestadores(
         email: seed.email,
         password: passwordHash,
         sexo: seed.sexo,
+        role: Role.PROVIDER,
         contactos: {
           create: { tipo: TipoContacto.CELULAR, valor: seed.celular },
         },
@@ -656,9 +673,73 @@ async function seedPrestadores(
   console.log(`\nPassword de todos los usuarios demo: ${DEMO_PASSWORD}`);
 }
 
+// Opiniones cruzadas entre los prestadores demo (nadie opina sobre sí mismo)
+const comentariosDemo: Array<{ puntaje: number; comentario: string }> = [
+  { puntaje: 5, comentario: 'Muy responsable. Lo recomiendo.' },
+  { puntaje: 4, comentario: 'Trabaja con materiales de calidad.' },
+  { puntaje: 5, comentario: 'Ofrece garantías por su trabajo. Recomendable.' },
+  { puntaje: 4, comentario: 'Cumplió con los plazos acordados.' },
+  { puntaje: 3, comentario: 'Buen trabajo, aunque demoró en responder.' },
+];
+
+async function seedReviews(): Promise<void> {
+  const usuarios = await prisma.user.findMany({
+    where: { email: { endsWith: '@jobit.demo', not: 'admin@jobit.demo' } },
+    orderBy: { email: 'asc' },
+    select: { id: true, prestador: { select: { id: true } } },
+  });
+
+  let creadas = 0;
+  for (let i = 0; i < usuarios.length; i++) {
+    const prestadorId = usuarios[i].prestador?.id;
+    if (!prestadorId) continue;
+
+    // Cada prestador recibe 3 opiniones de los siguientes usuarios de la lista
+    for (let j = 1; j <= 3; j++) {
+      const opinante = usuarios[(i + j) % usuarios.length];
+      if (opinante.prestador?.id === prestadorId) continue;
+
+      const demo = comentariosDemo[(i + j) % comentariosDemo.length];
+      await prisma.review.upsert({
+        where: {
+          prestadorId_userId: { prestadorId, userId: opinante.id },
+        },
+        update: {},
+        create: {
+          prestadorId,
+          userId: opinante.id,
+          puntaje: demo.puntaje,
+          comentario: demo.comentario,
+        },
+      });
+      creadas++;
+    }
+  }
+  console.log(`✓ ${creadas} opiniones demo`);
+}
+
+async function seedAdmin(): Promise<void> {
+  const passwordHash = await hash(DEMO_PASSWORD, BCRYPT_SALT_ROUNDS);
+  await prisma.user.upsert({
+    where: { email: 'admin@jobit.demo' },
+    update: { role: Role.ADMIN },
+    create: {
+      nombre: 'Admin',
+      apellido: 'Jobit',
+      documento: '00000001',
+      email: 'admin@jobit.demo',
+      password: passwordHash,
+      role: Role.ADMIN,
+    },
+  });
+  console.log('✓ admin@jobit.demo (ADMIN)');
+}
+
 async function main(): Promise<void> {
   const subrubroIds = await seedRubros();
   await seedPrestadores(subrubroIds);
+  await seedReviews();
+  await seedAdmin();
 }
 
 main()

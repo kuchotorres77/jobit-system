@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
 import { createSearchParams, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Mail } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Star } from "lucide-react";
 import Swal from "sweetalert2";
 import { NavbarUser, Footer } from "@/components";
-import { ApiError, getPrestador, getRubros, Prestador, Rubro } from "@/api";
+import {
+  ApiError,
+  archivoUrl,
+  getPrestador,
+  getRubros,
+  Prestador,
+  ReviewsResumen,
+  Rubro,
+} from "@/api";
 import { SearchBar, SearchValues, SIN_FILTRO } from "./components/SearchBar";
-import { DIA_LABEL } from "./helpers";
+import { Opiniones } from "./components/Opiniones";
+import { contactoPrincipal, DIA_LABEL } from "./helpers";
 
 export default function PrestadorDetalle() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [prestador, setPrestador] = useState<Prestador | null>(null);
+  const [resumenReviews, setResumenReviews] = useState<ReviewsResumen | null>(null);
   const [rubros, setRubros] = useState<Rubro[]>([]);
   const [filtros, setFiltros] = useState<SearchValues>({
     rubro: SIN_FILTRO,
@@ -61,6 +71,8 @@ export default function PrestadorDetalle() {
   const iniciales = prestador
     ? `${prestador.user.nombre.charAt(0)}${prestador.user.apellido.charAt(0)}`
     : "";
+  const contacto = prestador ? contactoPrincipal(prestador) : null;
+  const fotos = prestador?.user.archivos ?? [];
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -89,18 +101,48 @@ export default function PrestadorDetalle() {
               Volver
             </button>
 
-            {/* Título */}
-            <h1 className="text-2xl font-semibold text-gray-900 mb-6">
-              {rubrosDelPrestador.join(" · ")} {prestador.user.nombre}{" "}
-              {prestador.user.apellido}
-            </h1>
-
-            {/* Banner (placeholder de galería hasta que existan fotos) */}
-            <div className="h-64 rounded-xl bg-gradient-to-br from-jobit-violeta-700 via-jobit-violeta-900 to-jobit-violeta-900 flex items-center justify-center mb-10">
-              <span className="text-white text-7xl font-semibold opacity-80">
-                {iniciales}
-              </span>
+            {/* Título + calificación promedio (como el frame Buscar-Jobit 2) */}
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {rubrosDelPrestador.join(" · ")} {prestador.user.nombre}{" "}
+                {prestador.user.apellido}
+              </h1>
+              {resumenReviews && resumenReviews.total > 0 && (
+                <span className="flex items-center gap-1.5 text-lg font-semibold text-gray-900 shrink-0">
+                  {resumenReviews.promedio.toLocaleString("es-AR")}
+                  <Star size={20} color="#FFC54D" fill="#FFC54D" />
+                </span>
+              )}
             </div>
+
+            {/* Banner: primera foto del prestador, o iniciales si no subió ninguna */}
+            {fotos.length > 0 ? (
+              <div className="mb-10">
+                <img
+                  src={archivoUrl(fotos[0].id)}
+                  alt={`${prestador.user.nombre} ${prestador.user.apellido}`}
+                  className="h-64 w-full rounded-xl object-cover"
+                />
+                {fotos.length > 1 && (
+                  <div className="flex gap-2 mt-2 overflow-x-auto">
+                    {fotos.slice(1).map((foto) => (
+                      <img
+                        key={foto.id}
+                        src={archivoUrl(foto.id)}
+                        alt="Foto del prestador"
+                        className="h-20 w-20 rounded-lg object-cover shrink-0"
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-64 rounded-xl bg-gradient-to-br from-jobit-violeta-700 via-jobit-violeta-900 to-jobit-violeta-900 flex items-center justify-center mb-10">
+                <span className="text-white text-7xl font-semibold opacity-80">
+                  {iniciales}
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Descripción */}
@@ -149,15 +191,18 @@ export default function PrestadorDetalle() {
                   <p className="font-semibold text-gray-900 mb-3">Contacto:</p>
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center shrink-0">
-                      <Mail size={14} />
+                      {contacto?.tipo === "telefono" ? <Phone size={14} /> : <Mail size={14} />}
                     </span>
                     <span className="text-sm text-gray-800 break-all">
-                      {prestador.user.email}
+                      {contacto?.valor}
                     </span>
                   </div>
                 </div>
               </aside>
             </div>
+
+            {/* Calificaciones y opiniones */}
+            <Opiniones prestador={prestador} onResumen={setResumenReviews} />
           </div>
         )}
       </main>

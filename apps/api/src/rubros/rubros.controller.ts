@@ -8,7 +8,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Role } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { CreateRubroDto } from './dto/create-rubro.dto';
 import { RubroCompleto } from './rubros.repository';
 import { RubrosService } from './rubros.service';
@@ -31,9 +34,10 @@ export class RubrosController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Crear un rubro con subrubros' })
+  @ApiOperation({ summary: 'Crear un rubro con subrubros (solo ADMIN)' })
   create(@Body() dto: CreateRubroDto): Promise<RubroCompleto> {
     return this.rubrosService.create(dto);
   }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { clearSession } from "@/api";
+import { logout } from "@/api";
 import { useSession } from "@/hooks/useSession";
 import logo from "@/assets/img/logo.png";
 
@@ -27,7 +27,7 @@ export const NavbarUser = () => {
   }, [menuOpen])
 
   const handleLogout = () => {
-    clearSession()
+    void logout()
     setMenuOpen(false)
     setIsOpen(false)
     navigate("/")
@@ -118,6 +118,40 @@ export const NavbarUser = () => {
 
               {menuOpen && (
                 <div className="md:absolute md:right-0 md:mt-2 md:w-48 bg-white md:rounded-md md:shadow-lg md:border md:border-gray-100 py-1 mt-2">
+                  <Link
+                    to="/perfil"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 font-semibold hover:bg-gray-100 hover:text-orange-600 transition"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Mi perfil</span>
+                  </Link>
+                  <Link
+                    to="/favoritos"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setIsOpen(false)
+                    }}
+                    className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 font-semibold hover:bg-gray-100 hover:text-orange-600 transition"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path
+                        fillRule="evenodd"
+                        d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span>Mis favoritos</span>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-2 px-4 py-2 text-left text-gray-700 font-semibold hover:bg-gray-100 hover:text-orange-600 transition"

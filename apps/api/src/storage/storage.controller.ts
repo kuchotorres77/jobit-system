@@ -1,6 +1,10 @@
 import {
   Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
   Post,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -48,5 +52,11 @@ export class StorageController {
       throw new ArchivoRequeridoException();
     }
     return this.storageService.registerUpload(user.id, file.filename, file.path);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Descargar un archivo subido (público)' })
+  getArchivo(@Param('id', ParseUUIDPipe) id: string): Promise<StreamableFile> {
+    return this.storageService.getArchivo(id);
   }
 }

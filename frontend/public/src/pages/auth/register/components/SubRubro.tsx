@@ -173,8 +173,8 @@ export const SubRubroComponent = ({
               </Box>
             </Box>
 
-            {/* Eliminar */}
-            {i > 0 && (
+            {/* Eliminar (siempre debe quedar al menos un servicio) */}
+            {subRubroArray.length > 1 && (
               <IconButton
                 onClick={() => eliminarSubrubro(i)}
                 size="small"

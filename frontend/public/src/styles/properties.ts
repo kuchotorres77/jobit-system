@@ -8,7 +8,8 @@ export const THEMES = {
     },
     'fontFamily':{
         'shadowslight':['Shadows'],
-        'saira':['Saira']
+        'saira':['Saira'],
+        'roboto':['Roboto', 'Arial', 'sans-serif']
     }
 }
 

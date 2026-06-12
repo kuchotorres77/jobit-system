@@ -1,12 +1,16 @@
 import { Test } from '@nestjs/testing';
+import { Role } from '@prisma/client';
+import { UsersRepository } from '../auth/users.repository';
 import {
   OperacionNoPermitidaException,
   PerfilPrestadorExistenteException,
+  PerfilPrestadorNoEncontradoException,
   PrestadorNoEncontradoException,
   SubrubroNoEncontradoException,
 } from '../common/exceptions/domain.exception';
 import {
   PrestadorCompleto,
+  PrestadorConRating,
   PrestadoresRepository,
 } from './prestadores.repository';
 import { PrestadoresService } from './prestadores.service';
@@ -14,6 +18,7 @@ import { PrestadoresService } from './prestadores.service';
 describe('PrestadoresService', () => {
   let service: PrestadoresService;
   let repository: jest.Mocked<PrestadoresRepository>;
+  let usersRepository: jest.Mocked<UsersRepository>;
 
   const prestador = {
     id: 'prestador-1',
@@ -58,11 +63,18 @@ describe('PrestadoresService', () => {
             subrubrosExisten: jest.fn(),
           },
         },
+        {
+          provide: UsersRepository,
+          useValue: {
+            updateRole: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = moduleRef.get(PrestadoresService);
     repository = moduleRef.get(PrestadoresRepository);
+    usersRepository = moduleRef.get(UsersRepository);
   });
 
   describe('create', () => {
@@ -79,6 +91,10 @@ describe('PrestadoresService', () => {
         createDto.descripcion,
         createDto.servicios,
       );
+      expect(usersRepository.updateRole).toHaveBeenCalledWith(
+        'user-1',
+        Role.PROVIDER,
+      );
     });
 
     it('should throw PerfilPrestadorExistenteException when user already has a profile', async () => {
@@ -87,6 +103,7 @@ describe('PrestadoresService', () => {
       await expect(service.create('user-1', createDto)).rejects.toBeInstanceOf(
         PerfilPrestadorExistenteException,
       );
+      expect(usersRepository.updateRole).not.toHaveBeenCalled();
     });
 
     it('should throw SubrubroNoEncontradoException when a subrubro does not exist', async () => {
@@ -101,7 +118,11 @@ describe('PrestadoresService', () => {
 
   describe('findAll', () => {
     it('should forward pagination and filters to the repository', async () => {
-      repository.findMany.mockResolvedValue({ data: [prestador], total: 1 });
+      const conRating = {
+        ...prestador,
+        rating: { promedio: 4.5, total: 2 },
+      } as PrestadorConRating;
+      repository.findMany.mockResolvedValue({ data: [conRating], total: 1 });
 
       const result = await service.findAll({
         page: 2,
@@ -118,6 +139,22 @@ describe('PrestadoresService', () => {
         q: 'plomero',
       });
       expect(result.meta).toEqual({ total: 1, page: 2, limit: 10 });
+    });
+  });
+
+  describe('findByUser', () => {
+    it('should return own prestador when it exists', async () => {
+      repository.findByUserId.mockResolvedValue(prestador);
+
+      await expect(service.findByUser('user-1')).resolves.toBe(prestador);
+    });
+
+    it('should throw PerfilPrestadorNoEncontradoException when user has no profile', async () => {
+      repository.findByUserId.mockResolvedValue(null);
+
+      await expect(service.findByUser('user-2')).rejects.toBeInstanceOf(
+        PerfilPrestadorNoEncontradoException,
+      );
     });
   });
 

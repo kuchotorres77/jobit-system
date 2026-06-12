@@ -4,3 +4,6 @@ export * from "./types";
 export * from "./auth";
 export * from "./rubros";
 export * from "./prestadores";
+export * from "./reviews";
+export * from "./favoritos";
+export * from "./upload";

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { JobitSelect } from "./JobitSelect";
 import { JobitInputControlado } from "./JobitInputControlado";
@@ -27,6 +27,13 @@ export const JobitDiaHora = ({
       ? value
       : [{ dia: [], desde: "", hasta: "" }]
   );
+
+  // Sincroniza con el value externo (necesario para formularios con datos precargados)
+  useEffect(() => {
+    if (value.length > 0) {
+      setItems(value);
+    }
+  }, [value]);
 
   const emitChange = (updated: Disponibilidad[]) => {
     setItems(updated);

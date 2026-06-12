@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
-import { ApiError, login } from "@/api";
+import { ApiError, login, loginConGoogle } from "@/api";
 import logoIn from "@/assets/img/logo-in.png";
 import imgLogin from "@/assets/img/img-inicio-cel.png";
 
@@ -13,15 +13,115 @@ type LoginFormData = {
   remember: boolean;
 };
 
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as
+  | string
+  | undefined;
+const GOOGLE_GSI_SRC = "https://accounts.google.com/gsi/client";
+
+interface GoogleCredentialResponse {
+  credential: string;
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: GoogleCredentialResponse) => void;
+          }) => void;
+          renderButton: (
+            parent: HTMLElement,
+            options: Record<string, unknown>,
+          ) => void;
+        };
+      };
+    };
+  }
+}
+
 export default function Login() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>();
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return;
+
+    const onCredential = async (response: GoogleCredentialResponse) => {
+      try {
+        const result = await loginConGoogle(response.credential);
+        await Swal.fire({
+          title: `¡Bienvenido, ${result.user.nombre}!`,
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        navigate("/");
+      } catch (error) {
+        const message =
+          error instanceof ApiError
+            ? error.message
+            : "No se pudo conectar con el servidor";
+        Swal.fire({ title: "Error al iniciar sesión", text: message, icon: "error" });
+      }
+    };
+
+    let inicializado = false;
+    const pintarBotonGoogle = () => {
+      const contenedor = googleButtonRef.current;
+      if (!window.google || !contenedor) return;
+      if (!inicializado) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: onCredential,
+        });
+        inicializado = true;
+      }
+      // GIS no acepta más de 400px de ancho; el stack de botones respeta ese límite
+      const ancho = Math.min(Math.round(contenedor.offsetWidth) || 320, 400);
+      contenedor.innerHTML = "";
+      window.google.accounts.id.renderButton(contenedor, {
+        theme: "outline",
+        size: "large",
+        text: "signin_with",
+        width: ancho,
+      });
+    };
+
+    // Re-renderiza el botón cuando cambia el ancho disponible (responsive)
+    let timer: number | undefined;
+    const observer = new ResizeObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(pintarBotonGoogle, 150);
+    });
+    if (googleButtonRef.current) {
+      observer.observe(googleButtonRef.current);
+    }
+
+    if (window.google) {
+      pintarBotonGoogle();
+    } else {
+      const script = document.createElement("script");
+      script.src = GOOGLE_GSI_SRC;
+      script.async = true;
+      script.onload = pintarBotonGoogle;
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
@@ -140,23 +240,38 @@ export default function Login() {
                 </a>
               </div>
 
-              {/* Botón Ingresar */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-[#78499A] hover:bg-[#653d84] text-white text-lg font-bold rounded-md transition disabled:opacity-60 p-2"
-              >
-                {loading ? "Ingresando..." : "Ingresar"}
-              </button>
+              {/* Botones: mismo ancho los tres (máx. 400px, límite del botón de Google)
+                  y alto/tipografía del botón de Google: 40px, Roboto 500, 14px */}
+              <div className="w-full max-w-[400px] mx-auto space-y-4 pt-1">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-10 bg-[#78499A] hover:bg-[#653d84] text-white font-roboto font-medium text-sm rounded-md transition disabled:opacity-60"
+                >
+                  {loading ? "Ingresando..." : "Ingresar"}
+                </button>
 
-              {/* Botón Registrarse (no figura en el frame de Figma; se mantiene a pedido) */}
-              <button
-                type="button"
-                onClick={() => navigate("/register")}
-                className="w-full bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 text-lg font-medium rounded-md block p-2 transition"
-              >
-                Registrarse
-              </button>
+                {/* Login con Google (visible solo si hay client ID configurado) */}
+                {GOOGLE_CLIENT_ID && (
+                  <>
+                    <div ref={googleButtonRef} className="w-full h-10" />
+                    <div className="flex items-center gap-3 text-[#8E8E8E] font-roboto text-sm">
+                      <span className="flex-1 border-t border-gray-200" />
+                      o
+                      <span className="flex-1 border-t border-gray-200" />
+                    </div>
+                  </>
+                )}
+
+                {/* Botón Registrarse (no figura en el frame de Figma; se mantiene a pedido) */}
+                <button
+                  type="button"
+                  onClick={() => navigate("/register")}
+                  className="w-full h-10 bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 font-roboto font-medium text-sm rounded-md block transition"
+                >
+                  Registrate como Prestador
+                </button>
+              </div>
             </form>
           </div>
         </div>

@@ -20,7 +20,10 @@ import { AuthenticatedUser } from '../common/interfaces/authenticated-user.inter
 import { CreatePrestadorDto } from './dto/create-prestador.dto';
 import { FindPrestadoresQueryDto } from './dto/find-prestadores-query.dto';
 import { UpdatePrestadorDto } from './dto/update-prestador.dto';
-import { PrestadorCompleto } from './prestadores.repository';
+import {
+  PrestadorCompleto,
+  PrestadorConRating,
+} from './prestadores.repository';
 import { PrestadoresService } from './prestadores.service';
 
 @ApiTags('prestadores')
@@ -29,11 +32,22 @@ export class PrestadoresController {
   constructor(private readonly prestadoresService: PrestadoresService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Listar prestadores con filtros y paginación' })
+  @ApiOperation({
+    summary: 'Listar prestadores con filtros, paginación y calificación',
+  })
   findAll(
     @Query() query: FindPrestadoresQueryDto,
-  ): Promise<PaginatedResult<PrestadorCompleto>> {
+  ): Promise<PaginatedResult<PrestadorConRating>> {
     return this.prestadoresService.findAll(query);
+  }
+
+  // Debe declararse antes de :id para que "me" no caiga en el ParseUUIDPipe
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obtener el perfil de prestador del usuario actual' })
+  findMe(@CurrentUser() user: AuthenticatedUser): Promise<PrestadorCompleto> {
+    return this.prestadoresService.findByUser(user.id);
   }
 
   @Get(':id')

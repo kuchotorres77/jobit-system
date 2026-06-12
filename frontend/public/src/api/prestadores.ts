@@ -3,6 +3,7 @@ import {
   CreatePrestadorPayload,
   PaginatedResult,
   Prestador,
+  UpdatePrestadorPayload,
 } from "./types";
 
 export interface PrestadorFilters {
@@ -35,8 +36,19 @@ export function getPrestador(id: string): Promise<Prestador> {
   return api.get<Prestador>(`/prestadores/${id}`);
 }
 
+export function getMiPrestador(): Promise<Prestador> {
+  return api.get<Prestador>("/prestadores/me", true);
+}
+
 export function createPrestador(
   payload: CreatePrestadorPayload,
 ): Promise<Prestador> {
   return api.post<Prestador>("/prestadores", payload, true);
+}
+
+export function updatePrestador(
+  id: string,
+  payload: UpdatePrestadorPayload,
+): Promise<Prestador> {
+  return api.put<Prestador>(`/prestadores/${id}`, payload);
 }

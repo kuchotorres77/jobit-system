@@ -4,10 +4,12 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
+import { FavoritosModule } from './favoritos/favoritos.module';
 import configuration from './config/configuration';
 import { validationSchema } from './config/validation.schema';
 import { PrestadoresModule } from './prestadores/prestadores.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { ReviewsModule } from './reviews/reviews.module';
 import { RubrosModule } from './rubros/rubros.module';
 import { StorageModule } from './storage/storage.module';
 
@@ -27,6 +29,8 @@ import { StorageModule } from './storage/storage.module';
     PrismaModule,
     AuthModule,
     PrestadoresModule,
+    ReviewsModule,
+    FavoritosModule,
     RubrosModule,
     StorageModule,
   ],

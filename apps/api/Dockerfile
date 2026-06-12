@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 
+COPY prisma.config.ts ./
 COPY prisma ./prisma
 RUN npx prisma generate
 
@@ -18,6 +19,7 @@ ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./
 COPY package.json ./
 
 EXPOSE 3000

@@ -12,22 +12,12 @@ import {
   getRubros,
   login,
   registerUser,
-  DiaSemana,
+  uploadFile,
+  DireccionPayload,
   Rubro,
-  ServicioPayload,
   Sexo,
 } from "@/api";
-
-interface Disponibilidad {
-  dia: string[];
-  desde: string;
-  hasta: string;
-}
-interface SubRubro {
-  nombre: string;
-  zonaCobertura: string[];
-  disponibilidad: Disponibilidad[];
-}
+import { construirServicios, ServicioForm } from "@/lib/servicios";
 
 interface RegisterFormData {
   first_name: string;
@@ -42,20 +32,6 @@ interface RegisterFormData {
   password_confirm: string;
   descripcion: string;
 }
-
-const DIA_API: Record<string, DiaSemana> = {
-  Lunes: "LUNES",
-  Martes: "MARTES",
-  Miércoles: "MIERCOLES",
-  Jueves: "JUEVES",
-  Viernes: "VIERNES",
-  Sábado: "SABADO",
-  Domingo: "DOMINGO",
-  Feriados: "FERIADOS",
-};
-
-const normalizarDia = (dia: string): DiaSemana =>
-  DIA_API[dia] ?? (dia.toUpperCase() as DiaSemana);
 
 export default function Register() {
   const navigate = useNavigate();
@@ -75,9 +51,13 @@ export default function Register() {
     },
   });
 
-  const [subRubros, setSubRubros] = useState<SubRubro[]>([]);
+  const [subRubros, setSubRubros] = useState<ServicioForm[]>([]);
   const [rubros, setRubros] = useState<Rubro[]>([]);
   const [sexo, setSexo] = useState<string>("");
+  const [provincia, setProvincia] = useState<string>("");
+  const [departamento, setDepartamento] = useState<string>("");
+  const [localidad, setLocalidad] = useState<string>("");
+  const [foto, setFoto] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -106,33 +86,6 @@ export default function Register() {
     return { subrubroOptions: opciones, subrubroIdPorEtiqueta: mapa };
   }, [rubros]);
 
-  const construirServicios = (): ServicioPayload[] | null => {
-    const servicios: ServicioPayload[] = [];
-
-    for (const item of subRubros) {
-      if (!item.nombre) continue;
-
-      const subrubroId = subrubroIdPorEtiqueta.get(item.nombre);
-      if (!subrubroId) continue;
-
-      const disponibilidades = item.disponibilidad
-        .filter((d) => d.dia.length > 0 && d.desde && d.hasta)
-        .map((d) => ({
-          dias: d.dia.map(normalizarDia),
-          desde: d.desde,
-          hasta: d.hasta,
-        }));
-
-      if (item.zonaCobertura.length === 0 || disponibilidades.length === 0) {
-        return null;
-      }
-
-      servicios.push({ subrubroId, zonaCobertura: item.zonaCobertura, disponibilidades });
-    }
-
-    return servicios.length > 0 ? servicios : null;
-  };
-
   const onSubmit = async (data: RegisterFormData) => {
     if (!data.first_name || !data.last_name || !data.dni || !data.email) {
       Swal.fire({
@@ -160,7 +113,7 @@ export default function Register() {
       return;
     }
 
-    const servicios = construirServicios();
+    const servicios = construirServicios(subRubros, subrubroIdPorEtiqueta);
     if (!servicios) {
       Swal.fire({
         title: "Servicios incompletos",
@@ -173,6 +126,21 @@ export default function Register() {
     const sexoPayload: Sexo | undefined =
       sexo === "femenino" ? "FEMENINO" : sexo === "masculino" ? "MASCULINO" : undefined;
 
+    const calle = [data.street_address.trim(), data.number_address.trim()]
+      .filter(Boolean)
+      .join(" ");
+
+    const direccion: DireccionPayload | undefined =
+      calle && data.postal_code && provincia
+        ? {
+            calle,
+            codigoPostal: data.postal_code,
+            provincia,
+            departamento: departamento || undefined,
+            localidad: localidad || undefined,
+          }
+        : undefined;
+
     setLoading(true);
     try {
       await registerUser({
@@ -182,6 +150,8 @@ export default function Register() {
         email: data.email,
         password: data.password,
         sexo: sexoPayload,
+        telefono: data.phone.trim() || undefined,
+        direccion,
       });
 
       await login({ email: data.email, password: data.password });
@@ -191,10 +161,19 @@ export default function Register() {
         servicios,
       });
 
+      let avisoFoto = "";
+      if (foto) {
+        try {
+          await uploadFile(foto);
+        } catch {
+          avisoFoto = " La foto no se pudo subir; podés intentarlo más adelante.";
+        }
+      }
+
       await Swal.fire({
         title: "¡Registro exitoso!",
-        text: "Tu perfil de prestador ya está creado.",
-        icon: "success",
+        text: `Tu perfil de prestador ya está creado.${avisoFoto}`,
+        icon: avisoFoto ? "warning" : "success",
       });
       navigate("/");
     } catch (error) {
@@ -346,25 +325,25 @@ export default function Register() {
                 <div className="sm:col-span-2">
                   <JobitSelect
                     label="Provincia"
-                    limit={2}
                     options={["San Juan", "Mendoza", "San Luis", "La Rioja"]}
-                    onChange={() => undefined}
+                    value={provincia}
+                    onChange={(val) => setProvincia(val as string)}
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <JobitSelect
                     label="Departamento"
-                    limit={2}
                     options={["Capital", "Rawson", "Pocito", "Rivadavia"]}
-                    onChange={() => undefined}
+                    value={departamento}
+                    onChange={(val) => setDepartamento(val as string)}
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <JobitSelect
                     label="Localidad"
-                    limit={2}
                     options={["Villa Aberastain", "Villa Krause", "Concepción", "Villa Barboza"]}
-                    onChange={() => undefined}
+                    value={localidad}
+                    onChange={(val) => setLocalidad(val as string)}
                   />
                 </div>
               </div>
@@ -386,6 +365,20 @@ export default function Register() {
                  focus:outline-none focus:border-blue-700"
                 {...register("descripcion")}
               />
+
+              <div className="mt-4">
+                <label htmlFor="foto" className="block text-sm font-semibold text-gray-700 mb-1">
+                  Foto de perfil (opcional)
+                </label>
+                <input
+                  id="foto"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(e) => setFoto(e.target.files?.[0] ?? null)}
+                  className="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0
+                   file:bg-orange-400 file:px-3 file:py-1.5 file:text-sm file:text-white file:cursor-pointer"
+                />
+              </div>
             </div>
           </section>
 

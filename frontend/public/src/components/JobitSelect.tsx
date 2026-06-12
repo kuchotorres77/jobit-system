@@ -28,6 +28,15 @@ export const JobitSelect = ({
 
   const selectRef = useRef<HTMLDivElement | null>(null);
 
+  // Sincroniza con el value externo (necesario para formularios con datos precargados)
+  useEffect(() => {
+    if (multiple) {
+      setSelected(Array.isArray(value) ? value : []);
+    } else {
+      setSelected(typeof value === "string" && value ? [value] : []);
+    }
+  }, [value, multiple]);
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (selectRef.current && !selectRef.current.contains(e.target as Node)) {

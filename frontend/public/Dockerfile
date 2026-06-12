@@ -7,6 +7,9 @@ COPY . .
 # La API se consume same-origin a través del proxy /api de nginx
 ARG VITE_API_URL=/api
 ENV VITE_API_URL=$VITE_API_URL
+# Client ID de OAuth de Google; vacío = botón de Google oculto
+ARG VITE_GOOGLE_CLIENT_ID=
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm run build
 
 # ---- Runtime stage ----

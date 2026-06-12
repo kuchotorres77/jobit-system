@@ -28,6 +28,36 @@ export class CredencialesInvalidasException extends DomainException {
   }
 }
 
+export class RefreshTokenInvalidoException extends DomainException {
+  constructor() {
+    super('La sesión es inválida o expiró', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+export class GoogleLoginNoConfiguradoException extends DomainException {
+  constructor() {
+    super(
+      'El inicio de sesión con Google no está habilitado',
+      HttpStatus.SERVICE_UNAVAILABLE,
+    );
+  }
+}
+
+export class GoogleTokenInvalidoException extends DomainException {
+  constructor() {
+    super('No se pudo validar la cuenta de Google', HttpStatus.UNAUTHORIZED);
+  }
+}
+
+export class PerfilPrestadorNoEncontradoException extends DomainException {
+  constructor() {
+    super(
+      'El usuario no tiene un perfil de prestador',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+}
+
 export class PrestadorNoEncontradoException extends DomainException {
   constructor(id: string) {
     super(`No existe el prestador ${id}`, HttpStatus.NOT_FOUND);
@@ -73,8 +103,38 @@ export class SubrubroNoEncontradoException extends DomainException {
   }
 }
 
+export class NoPuedeOpinarSobreSiMismoException extends DomainException {
+  constructor() {
+    super(
+      'No podés dejar una opinión sobre tu propio perfil',
+      HttpStatus.FORBIDDEN,
+    );
+  }
+}
+
+export class ReviewNoEncontradaException extends DomainException {
+  constructor() {
+    super('No tenés una opinión sobre este prestador', HttpStatus.NOT_FOUND);
+  }
+}
+
 export class ArchivoRequeridoException extends DomainException {
   constructor() {
     super('Debe adjuntar un archivo', HttpStatus.BAD_REQUEST);
+  }
+}
+
+export class TipoDeArchivoNoPermitidoException extends DomainException {
+  constructor() {
+    super(
+      'Solo se permiten imágenes (jpg, png, webp o gif)',
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}
+
+export class ArchivoNoEncontradoException extends DomainException {
+  constructor(id: string) {
+    super(`No existe el archivo ${id}`, HttpStatus.NOT_FOUND);
   }
 }

@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [unaccent]
 }
 
 enum Sexo {
@@ -28,22 +30,46 @@ enum TipoContacto {
   CELULAR
 }
 
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
 model User {
-  id          String        @id @default(uuid())
-  nombre      String
-  apellido    String
-  documento   String        @unique
-  email       String        @unique
-  password    String
-  sexo        Sexo?
-  prestador   Prestador?
-  contactos   Contacto[]
-  direcciones Direccion[]
-  archivos    StorageFile[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String         @id @default(uuid())
+  nombre        String
+  apellido      String
+  // Opcionales: las cuentas creadas vía Google no tienen documento ni password
+  documento     String?        @unique
+  email         String         @unique
+  password      String?
+  sexo          Sexo?
+  role          Role           @default(CUSTOMER)
+  prestador     Prestador?
+  contactos     Contacto[]
+  direcciones   Direccion[]
+  archivos      StorageFile[]
+  refreshTokens RefreshToken[]
+  reviews       Review[]
+  favoritos     Favorito[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 model Contacto {
@@ -78,10 +104,42 @@ model Prestador {
   userId      String     @unique
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   servicios   Servicio[]
+  reviews     Review[]
+  favoritos   Favorito[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
   @@map("prestadores")
+}
+
+model Favorito {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prestadorId String
+  prestador   Prestador @relation(fields: [prestadorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, prestadorId])
+  @@map("favoritos")
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  prestadorId String
+  prestador   Prestador @relation(fields: [prestadorId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // 1 a 5 estrellas
+  puntaje     Int
+  comentario  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Una opinión por usuario y prestador; volver a opinar la reemplaza
+  @@unique([prestadorId, userId])
+  @@index([prestadorId])
+  @@map("reviews")
 }
 
 model Rubro {

@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Role } from '@prisma/client';
+import { UsersRepository } from '../auth/users.repository';
 import { PaginatedResult } from '../common/dto/pagination-query.dto';
 import {
   OperacionNoPermitidaException,
   PerfilPrestadorExistenteException,
+  PerfilPrestadorNoEncontradoException,
   PrestadorNoEncontradoException,
   SubrubroNoEncontradoException,
 } from '../common/exceptions/domain.exception';
@@ -11,6 +14,7 @@ import { FindPrestadoresQueryDto } from './dto/find-prestadores-query.dto';
 import { UpdatePrestadorDto } from './dto/update-prestador.dto';
 import {
   PrestadorCompleto,
+  PrestadorConRating,
   PrestadoresRepository,
 } from './prestadores.repository';
 
@@ -18,7 +22,10 @@ import {
 export class PrestadoresService {
   private readonly logger = new Logger(PrestadoresService.name);
 
-  constructor(private readonly prestadoresRepository: PrestadoresRepository) {}
+  constructor(
+    private readonly prestadoresRepository: PrestadoresRepository,
+    private readonly usersRepository: UsersRepository,
+  ) {}
 
   async create(
     userId: string,
@@ -33,16 +40,18 @@ export class PrestadoresService {
 
     await this.validarSubrubros(dto.servicios.map((s) => s.subrubroId));
 
-    return this.prestadoresRepository.create(
+    const prestador = await this.prestadoresRepository.create(
       userId,
       dto.descripcion,
       dto.servicios,
     );
+    await this.usersRepository.updateRole(userId, Role.PROVIDER);
+    return prestador;
   }
 
   async findAll(
     query: FindPrestadoresQueryDto,
-  ): Promise<PaginatedResult<PrestadorCompleto>> {
+  ): Promise<PaginatedResult<PrestadorConRating>> {
     this.logger.debug(`findAll: page=${query.page} limit=${query.limit}`);
 
     const skip = (query.page - 1) * query.limit;
@@ -61,6 +70,16 @@ export class PrestadoresService {
       data,
       meta: { total, page: query.page, limit: query.limit },
     };
+  }
+
+  async findByUser(userId: string): Promise<PrestadorCompleto> {
+    this.logger.debug(`findByUser: ${userId}`);
+
+    const prestador = await this.prestadoresRepository.findByUserId(userId);
+    if (!prestador) {
+      throw new PerfilPrestadorNoEncontradoException();
+    }
+    return prestador;
   }
 
   async findById(id: string): Promise<PrestadorCompleto> {

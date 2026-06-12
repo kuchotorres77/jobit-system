@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { NavbarUser, Footer } from "@/components";
-import { ApiError, getPrestadores, getRubros, Prestador, Rubro } from "@/api";
+import {
+  agregarFavorito,
+  ApiError,
+  getFavoritos,
+  getPrestadores,
+  getRubros,
+  quitarFavorito,
+  Prestador,
+  Rubro,
+} from "@/api";
+import { useSession } from "@/hooks/useSession";
 import { PrestadorCard } from "./components/PrestadorCard";
 import { SearchBar, SearchValues, SIN_FILTRO } from "./components/SearchBar";
 import logoLetras from "@/assets/img/logo-letrasjobit.png";
@@ -10,6 +20,8 @@ import logoLetras from "@/assets/img/logo-letrasjobit.png";
 const PAGE_SIZE = 12;
 
 export default function Servicios() {
+  const navigate = useNavigate();
+  const sessionUser = useSession();
   const [searchParams] = useSearchParams();
   const [rubros, setRubros] = useState<Rubro[]>([]);
   const [filtros, setFiltros] = useState<SearchValues>({
@@ -19,6 +31,7 @@ export default function Servicios() {
   });
 
   const [prestadores, setPrestadores] = useState<Prestador[]>([]);
+  const [favoritos, setFavoritos] = useState<Set<string>>(new Set());
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -59,6 +72,57 @@ export default function Servicios() {
       .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Favoritos guardados del usuario logueado
+  useEffect(() => {
+    if (!sessionUser) {
+      setFavoritos(new Set());
+      return;
+    }
+    getFavoritos()
+      .then((ids) => setFavoritos(new Set(ids)))
+      .catch(() => undefined);
+  }, [sessionUser?.id]);
+
+  const toggleFavorito = async (prestadorId: string) => {
+    if (!sessionUser) {
+      const respuesta = await Swal.fire({
+        title: "Guardá tus favoritos",
+        text: "Para guardar un prestador como favorito tenés que iniciar sesión.",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Iniciar sesión",
+        cancelButtonText: "Ahora no",
+      });
+      if (respuesta.isConfirmed) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    const eraFavorito = favoritos.has(prestadorId);
+    // Actualización optimista; se revierte si la API falla
+    setFavoritos((prev) => {
+      const set = new Set(prev);
+      if (eraFavorito) set.delete(prestadorId);
+      else set.add(prestadorId);
+      return set;
+    });
+    try {
+      if (eraFavorito) {
+        await quitarFavorito(prestadorId);
+      } else {
+        await agregarFavorito(prestadorId);
+      }
+    } catch {
+      setFavoritos((prev) => {
+        const set = new Set(prev);
+        if (eraFavorito) set.add(prestadorId);
+        else set.delete(prestadorId);
+        return set;
+      });
+    }
+  };
 
   // Primera búsqueda cuando los rubros están disponibles (los filtros de URL
   // necesitan resolver nombre → id contra la lista de rubros)
@@ -106,7 +170,12 @@ export default function Servicios() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {prestadores.map((prestador) => (
-                <PrestadorCard key={prestador.id} prestador={prestador} />
+                <PrestadorCard
+                  key={prestador.id}
+                  prestador={prestador}
+                  favorito={favoritos.has(prestador.id)}
+                  onToggleFavorito={() => toggleFavorito(prestador.id)}
+                />
               ))}
             </div>
 

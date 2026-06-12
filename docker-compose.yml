@@ -13,7 +13,6 @@ services:
     networks:
       - backend
 
-  # api-nest reemplazará a api cuando se complete la migración a NestJS + Prisma
   api-nest:
     build:
       context: ./apps/api
@@ -23,37 +22,25 @@ services:
       - "13005:3000"
     env_file:
       - ./apps/api/.env.docker
+    environment:
+      # Se toma del .env raíz; vacío = login con Google deshabilitado
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    volumes:
+      # Persiste las imágenes subidas entre rebuilds del contenedor
+      - vstorage:/app/storage
     depends_on:
       - postgres
     networks:
       - backend
       - frontend-net
 
-  # mongodb:
-  #   image: mongo:8.0.0-noble
-  #   volumes:
-  #     - vmongo:/data/db
-  #   networks:
-  #     - backend
-
-  # api:
-  #   build:
-  #     context: ./apps/api-service
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "3000:3000"
-  #   env_file:
-  #     - ./apps/api-service/.env.docker
-  #   depends_on:
-  #     - mongodb
-  #   networks:
-  #     - backend
-  #     - frontend-net
-
   frontend:
     build:
       context: ./frontend/public
       dockerfile: Dockerfile
+      args:
+        # El client ID queda embebido en el build de Vite (no es un secreto)
+        VITE_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     ports:
       - "80:80"
     depends_on:
@@ -62,8 +49,8 @@ services:
       - frontend-net
 
 volumes:
-  vmongo:
   vpostgres:
+  vstorage:
 
 networks:
   backend:
