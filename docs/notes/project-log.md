@@ -35,6 +35,28 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 
 ## Activity Log
 
+## [2026-06-12] Agent: Claude — Fix assets de producción, rename de imágenes, Swagger
+
+### Completed
+- **Fix assets crudos** (next-action 2026-06-11, resuelto): migrados a imports de Vite los 10 archivos que referenciaban `/src/assets/...` con strings — `Footer`, `HeroSection`, `AgendameSection`, `CapacitateSection`, `ContactSection`, `JobitPlusSection`, `PromocionalosSection`, `ServicesCarouselSection`, más dos rutas crudas con otro formato que el grep inicial no detectó: `Register.tsx` (`src/assets/...` relativa) e `ImageSlider.tsx` (`/assets/...`, componente sin uso actual). El favicon de `index.html` no necesitaba cambio (Vite procesa los href del index). Verificado: cero referencias `/src/assets` en `dist/`.
+- **Rename de imágenes**: 18 archivos de `frontend/public/src/assets/img/` a minúsculas y sin espacios (espacios → guiones), con `git mv` para preservar historia. Referencias actualizadas en todos los componentes. Build OK.
+- **Swagger/OpenAPI en `apps/api`**: `@nestjs/swagger` + plugin CLI en `nest-cli.json` (`introspectComments`; los DTOs se documentan solos desde class-validator), `setupSwagger()` en `main.ts` con bearer auth persistente, `@ApiTags`/`@ApiOperation`/`@ApiBearerAuth` en los 4 controllers, schema multipart para `/upload`. UI en `/api/docs` (200 directo en 13005 y vía proxy nginx). 16 tests pasando.
+- **Despliegue Docker**: stack completo reconstruido y verificado (frontend 200, imagen renombrada 200 image/png, `/api/rubros` 200 vía proxy).
+
+### Decisiones / incidentes
+- El postinstall de `@scarf/scarf` (telemetría, dependencia transitiva de swagger) quedó bloqueado por `allowScripts` — intencional, no aprobar salvo necesidad.
+- Los `package-lock.json` están gitignoreados en este repo (preexistente).
+
+### Pendiente de decisión del usuario
+- `docker-compose.yml` con `mongodb` + `api` (Express legado) comentados — cambio del usuario sin commitear; decidir si se commitea así o se eliminan los bloques definitivamente.
+
+### Next Steps
+- Persistir teléfono/domicilio del Register (Contacto/Direccion ya existen en el schema)
+- Búsqueda `q` insensible a tildes (extensión `unaccent` de Postgres)
+- Migrar `package.json#prisma` → `prisma.config.ts` (deprecado en Prisma 7)
+
+---
+
 ## [2026-06-11] Agent: Claude — Seed demo, sesión en navbar, Login según Figma
 
 ### Completed

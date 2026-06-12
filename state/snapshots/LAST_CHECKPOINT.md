@@ -1,28 +1,27 @@
-# Last Checkpoint — 2026-06-11 (3er checkpoint del día)
+# Last Checkpoint — 2026-06-12
 
 ## Sesión summary
-Stack completo verificado en Docker (postgres 5435 / api-nest **13005** / frontend 80): el 3005 cayó en un rango de puertos reservado por Windows y se movió a 13005; los `.env` perdidos de `apps/api` se regeneraron. Seeder ampliado a datos demo completos (10 prestadores logueables, password `Jobit123!`). NavbarUser muestra sesión (avatar de iniciales + nombre + logout) con hook `useSession` reactivo. Navegación del home arreglada (Buscar → `/servicios`, secciones por `/#hash` desde cualquier página). Login rediseñado contra el frame de Figma `290:2305` conservando el botón Registrarse, con iteración fina del usuario. Título de `/servicios` reemplazado por el asset del logo (en el frame es imagen, no texto).
+Se resolvió el bug de producción de los assets crudos (`/src/assets/...` devolvía el index.html vía nginx): pasada global migrando 10 componentes a imports de Vite, incluyendo dos rutas con formato distinto que el grep inicial no detectaba (`Register.tsx` con ruta relativa, `ImageSlider.tsx` con `/assets/`). Después se renombraron 18 imágenes a minúsculas sin espacios (con `git mv`, espacios → guiones) actualizando todas las referencias. Se agregó Swagger/OpenAPI a `apps/api` (plugin CLI con introspectComments + bearer auth + tags por controller; UI en `/api/docs`). Stack Docker reconstruido y verificado E2E (frontend 200, imagen renombrada 200 image/png, `/api/rubros` 200 vía proxy, Swagger 200 directo y vía nginx).
 
 ## Estado actual
 - Branch: `main` (tracking `origin/main`)
-- Commits de la sesión: `2b68803` (seed demo), `4fbd723` (puerto 13005), `df75aa4` (navbar sesión), `984c13a` (navegación home), `01625a7` (login Figma), `9f4ffc5` (título servicios) + checkpoint docs
-- Working tree post-checkpoint: solo `frontend/public/vite.config.ts` modificado (**cambio del usuario**: comentó el `server.host` fijo — decisión de commit pendiente del usuario)
+- Commits de la sesión: `4f11c4c` (rename imágenes + imports Vite), `85c4437` (Swagger) + checkpoint docs
+- Working tree post-checkpoint: solo `docker-compose.yml` modificado (**cambio del usuario**: comentó los servicios legados `mongodb` + `api` Express — decidir si commitear comentados o eliminar los bloques)
+- Stack Docker corriendo: postgres (5435), api-nest (13005), frontend nginx (80); Swagger en http://localhost/api/docs
 - Plan activo: no configurado (`core-config.yaml` no existe)
 
 ## Próximo step recomendado
 Persistir teléfono/domicilio del Register: agregar campos opcionales al RegisterDto (o endpoint de perfil) usando las tablas `Contacto`/`Direccion` existentes y enviarlos desde el frontend. Esto además habilita mostrar WhatsApp en las cards (gap de Figma).
 
 ## Comandos para resumir
-1. `/workflows:project-resume` (recovery completo)
-2. `docker compose up -d postgres api-nest frontend` si el stack está abajo (verificar con `docker compose ps`)
+1. `/workflows-project-resume` (recovery completo)
+2. `docker compose up -d` si el stack está abajo (verificar con `docker compose ps`)
 
 ## Backlog discovered esta sesión
-- Rutas crudas `/src/assets/...` rotas en producción (HeroSection y otros; Login ya migrado) — entrada nueva en next-action.md
-- Búsqueda `q` sensible a tildes — extensión `unaccent` de Postgres
-- `package.json#prisma` deprecado en Prisma 7 → `prisma.config.ts`
+- Decidir destino de los servicios legados comentados en `docker-compose.yml` (eliminar bloques vs commitear comentados)
 
 ## Notas para próxima sesión
-- Credenciales demo: `juan.perez@jobit.demo` … `valentina.rios@jobit.demo` / `Jobit123!`
-- El API quedó en **http://localhost:13005** (no 3005); vía frontend nginx: `http://localhost/api`
-- Si un bind de Docker falla con "socket no permitido": `netsh interface ipv4 show excludedportrange protocol=tcp`
-- Token Figma operativo en `.env` raíz (scope file_content:read); file key `rdNjA5MlzX9plDGHueK9lS`
+- Swagger UI: http://localhost/api/docs (bearer auth persistente; demo: `juan.perez@jobit.demo` / `Jobit123!`)
+- Los `package-lock.json` están gitignoreados en este repo (preexistente, no es un olvido)
+- El postinstall de `@scarf/scarf` (telemetría transitiva de swagger) está bloqueado por `allowScripts` — intencional
+- Backlog vigente: búsqueda `q` insensible a tildes (`unaccent`), migrar `package.json#prisma` → `prisma.config.ts`, plan monolito → microservicios

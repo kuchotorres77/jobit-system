@@ -24,12 +24,12 @@ El form de Register captura teléfono y domicilio pero la API no los recibe aún
 
 ---
 
-## [2026-06-11] → To: Dev
+## [2026-06-11] → To: Dev — ✅ RESUELTO (2026-06-11)
 
 **Subject:** Corregir rutas crudas `/src/assets/...` en el frontend
 **Priority:** Medium
-**Action Required:** Yes
+**Action Required:** No
 
-Las imágenes referenciadas con path crudo (`/src/assets/img/...`) devuelven el index.html en el build de producción (nginx). `Login.tsx` ya fue migrado a imports de Vite; quedan al menos `HeroSection.tsx` (bgSrc, logoSrc) y posiblemente otros componentes. Hacer una pasada global con `grep "/src/assets"`.
+Resuelto: pasada global sobre el frontend — migrados a imports de Vite los 8 componentes restantes (`Footer`, `HeroSection`, `AgendameSection`, `CapacitateSection`, `ContactSection`, `JobitPlusSection`, `PromocionalosSection`, `ServicesCarouselSection`). El favicon de `index.html` ya lo procesaba Vite (sale hasheado en el build). Verificado: build OK y cero referencias `/src/assets` en `dist/`.
 
 ---

@@ -1,0 +1,18 @@
+checkpoint_date: 2026-06-12
+session_summary: >-
+  Fix de assets crudos /src/assets (rotos en produccion), rename de 18 imagenes
+  a minusculas sin espacios, Swagger/OpenAPI en apps/api (/api/docs) y
+  redespliegue completo del stack Docker verificado.
+commits_created:
+  - sha: 4f11c4c
+    subject: "refactor(frontend): imagenes en minusculas sin espacios e imports de Vite"
+  - sha: 85c4437
+    subject: "feat(api): documentacion OpenAPI con Swagger en /api/docs"
+files_modified_count: 21
+files_created_count: 2
+backlog_items_added:
+  - "Decidir si los servicios legados comentados en docker-compose.yml (mongodb + api Express) se eliminan definitivamente (cambio del usuario sin commitear)"
+next_session_recommendation: >-
+  Persistir telefono/domicilio del Register (Contacto/Direccion ya existen en
+  el schema Prisma; falta DTO + frontend). Alternativa: busqueda q insensible
+  a tildes con extension unaccent de Postgres.
