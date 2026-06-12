@@ -6,7 +6,6 @@ package-lock.json
 
 # Archivos subidos por usuarios
 apps/api/storage/
-apps/api-service/storage/
 
 # Prisma generated clients
 **/src/generated/
