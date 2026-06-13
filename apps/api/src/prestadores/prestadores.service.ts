@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { UsersRepository } from '../auth/users.repository';
 import { PaginatedResult } from '../common/dto/pagination-query.dto';
+import { AuthenticatedUser } from '../common/interfaces/authenticated-user.interface';
 import {
   OperacionNoPermitidaException,
   PerfilPrestadorExistenteException,
@@ -94,15 +95,13 @@ export class PrestadoresService {
 
   async update(
     id: string,
-    userId: string,
+    actor: AuthenticatedUser,
     dto: UpdatePrestadorDto,
   ): Promise<PrestadorCompleto> {
-    this.logger.debug(`update: ${id} por usuario ${userId}`);
+    this.logger.debug(`update: ${id} por usuario ${actor.id}`);
 
     const prestador = await this.findById(id);
-    if (prestador.userId !== userId) {
-      throw new OperacionNoPermitidaException();
-    }
+    this.validarOwnership(prestador.userId, actor);
 
     if (dto.servicios) {
       await this.validarSubrubros(dto.servicios.map((s) => s.subrubroId));
@@ -111,15 +110,20 @@ export class PrestadoresService {
     return this.prestadoresRepository.update(id, dto.descripcion, dto.servicios);
   }
 
-  async remove(id: string, userId: string): Promise<void> {
-    this.logger.debug(`remove: ${id} por usuario ${userId}`);
+  async remove(id: string, actor: AuthenticatedUser): Promise<void> {
+    this.logger.debug(`remove: ${id} por usuario ${actor.id}`);
 
     const prestador = await this.findById(id);
-    if (prestador.userId !== userId) {
-      throw new OperacionNoPermitidaException();
-    }
+    this.validarOwnership(prestador.userId, actor);
 
     await this.prestadoresRepository.delete(id);
+  }
+
+  // El dueño opera sobre su perfil; ADMIN sobre cualquiera
+  private validarOwnership(ownerId: string, actor: AuthenticatedUser): void {
+    if (ownerId !== actor.id && actor.role !== Role.ADMIN) {
+      throw new OperacionNoPermitidaException();
+    }
   }
 
   private async validarSubrubros(subrubroIds: string[]): Promise<void> {

@@ -47,6 +47,10 @@ describe('PrestadoresService', () => {
     ],
   };
 
+  const duenio = { id: 'user-1', email: 'juan@test.com', role: Role.PROVIDER };
+  const otroUsuario = { id: 'otro-usuario', email: 'otro@test.com', role: Role.PROVIDER };
+  const admin = { id: 'admin-1', email: 'admin@test.com', role: Role.ADMIN };
+
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -179,7 +183,7 @@ describe('PrestadoresService', () => {
       repository.findById.mockResolvedValue(prestador);
 
       await expect(
-        service.update('prestador-1', 'otro-usuario', { descripcion: 'x' }),
+        service.update('prestador-1', otroUsuario, { descripcion: 'x' }),
       ).rejects.toBeInstanceOf(OperacionNoPermitidaException);
       expect(repository.update).not.toHaveBeenCalled();
     });
@@ -188,7 +192,7 @@ describe('PrestadoresService', () => {
       repository.findById.mockResolvedValue(prestador);
       repository.update.mockResolvedValue(prestador);
 
-      const result = await service.update('prestador-1', 'user-1', {
+      const result = await service.update('prestador-1', duenio, {
         descripcion: 'Nueva descripción',
       });
 
@@ -199,6 +203,19 @@ describe('PrestadoresService', () => {
         undefined,
       );
     });
+
+    it('should update any prestador when actor is ADMIN', async () => {
+      repository.findById.mockResolvedValue(prestador);
+      repository.update.mockResolvedValue(prestador);
+
+      await service.update('prestador-1', admin, { descripcion: 'admin edit' });
+
+      expect(repository.update).toHaveBeenCalledWith(
+        'prestador-1',
+        'admin edit',
+        undefined,
+      );
+    });
   });
 
   describe('remove', () => {
@@ -206,7 +223,7 @@ describe('PrestadoresService', () => {
       repository.findById.mockResolvedValue(prestador);
 
       await expect(
-        service.remove('prestador-1', 'otro-usuario'),
+        service.remove('prestador-1', otroUsuario),
       ).rejects.toBeInstanceOf(OperacionNoPermitidaException);
       expect(repository.delete).not.toHaveBeenCalled();
     });
@@ -215,7 +232,16 @@ describe('PrestadoresService', () => {
       repository.findById.mockResolvedValue(prestador);
       repository.delete.mockResolvedValue(undefined);
 
-      await service.remove('prestador-1', 'user-1');
+      await service.remove('prestador-1', duenio);
+
+      expect(repository.delete).toHaveBeenCalledWith('prestador-1');
+    });
+
+    it('should delete any prestador when actor is ADMIN', async () => {
+      repository.findById.mockResolvedValue(prestador);
+      repository.delete.mockResolvedValue(undefined);
+
+      await service.remove('prestador-1', admin);
 
       expect(repository.delete).toHaveBeenCalledWith('prestador-1');
     });

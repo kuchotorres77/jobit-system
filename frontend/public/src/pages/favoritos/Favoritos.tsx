@@ -85,7 +85,7 @@ export default function Favoritos() {
       <NavbarUser />
 
       <main className="flex-1 container mx-auto px-4 md:px-8 pt-28 pb-16">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold text-gray-900 mb-8">
+        <h1 className="flex items-center gap-2 text-2xl font-semibold text-gray-900 mb-8 justify-center">
           <Heart size={24} className="text-red-500" fill="currentColor" />
           Mis favoritos
         </h1>

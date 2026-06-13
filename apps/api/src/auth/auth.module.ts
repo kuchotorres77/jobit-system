@@ -33,6 +33,6 @@ import { UsersRepository } from './users.repository';
     GoogleAuthService,
     JwtStrategy,
   ],
-  exports: [UsersRepository],
+  exports: [AuthService, UsersRepository],
 })
 export class AuthModule {}

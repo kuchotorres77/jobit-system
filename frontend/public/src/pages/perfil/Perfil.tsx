@@ -231,7 +231,7 @@ export default function Perfil() {
       <NavbarUser />
 
       <main className="flex-1 container mx-auto px-4 md:px-8 pt-28 pb-16">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-8 text-center">
           Configuración de perfil
         </h1>
 

@@ -194,6 +194,22 @@ export interface CreateReviewPayload {
   comentario?: string;
 }
 
+export interface AdminCreateJobitPayload extends RegisterPayload {
+  descripcion?: string;
+  servicios: ServicioPayload[];
+}
+
+export interface UpdateRubroPayload {
+  nombre?: string;
+  // Con id renombra; sin id crea; los existentes que falten se eliminan
+  subrubros?: Array<{ id?: string; nombre: string }>;
+}
+
+export interface CreateRubroPayload {
+  nombre: string;
+  subrubros?: Array<{ nombre: string }>;
+}
+
 export interface StorageFileInfo {
   id: string;
   fileName: string;

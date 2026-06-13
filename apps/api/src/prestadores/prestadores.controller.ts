@@ -78,7 +78,7 @@ export class PrestadoresController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdatePrestadorDto,
   ): Promise<PrestadorCompleto> {
-    return this.prestadoresService.update(id, user.id, dto);
+    return this.prestadoresService.update(id, user, dto);
   }
 
   @Delete(':id')
@@ -90,6 +90,6 @@ export class PrestadoresController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<void> {
-    return this.prestadoresService.remove(id, user.id);
+    return this.prestadoresService.remove(id, user);
   }
 }

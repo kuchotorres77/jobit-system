@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
 import { FavoritosModule } from './favoritos/favoritos.module';
@@ -28,6 +29,7 @@ import { StorageModule } from './storage/storage.module';
     ]),
     PrismaModule,
     AuthModule,
+    AdminModule,
     PrestadoresModule,
     ReviewsModule,
     FavoritosModule,

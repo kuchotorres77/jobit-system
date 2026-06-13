@@ -94,6 +94,21 @@ export class RubroYaExisteException extends DomainException {
   }
 }
 
+export class RubroEnUsoException extends DomainException {
+  constructor() {
+    super(
+      'El rubro o alguno de sus subrubros tiene servicios de prestadores asociados',
+      HttpStatus.CONFLICT,
+    );
+  }
+}
+
+export class UsuarioNoEncontradoException extends DomainException {
+  constructor(id: string) {
+    super(`No existe el usuario ${id}`, HttpStatus.NOT_FOUND);
+  }
+}
+
 export class SubrubroNoEncontradoException extends DomainException {
   constructor() {
     super(

@@ -8,6 +8,6 @@ import { PrestadoresService } from './prestadores.service';
   imports: [AuthModule],
   controllers: [PrestadoresController],
   providers: [PrestadoresService, PrestadoresRepository],
-  exports: [PrestadoresRepository],
+  exports: [PrestadoresService, PrestadoresRepository],
 })
 export class PrestadoresModule {}

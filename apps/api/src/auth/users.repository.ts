@@ -85,6 +85,11 @@ export class UsersRepository {
     await this.prisma.user.update({ where: { id }, data: { role } });
   }
 
+  // Baja completa: las relaciones (prestador, contactos, reviews, etc.) caen en cascada
+  async delete(id: string): Promise<void> {
+    await this.prisma.user.delete({ where: { id } });
+  }
+
   create({ telefono, direccion, ...data }: CreateUserData): Promise<User> {
     return this.prisma.user.create({
       data: {

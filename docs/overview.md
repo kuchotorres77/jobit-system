@@ -75,6 +75,12 @@ src/
 | GET | `/api/rubros` | — | Listar rubros con subrubros |
 | GET | `/api/rubros/:id` | — | Ver rubro |
 | POST | `/api/rubros` | JWT + ADMIN | Crear rubro |
+| PUT | `/api/rubros/:id` | JWT + ADMIN | Renombrar rubro y reemplazar subrubros (409 si elimina uno en uso) |
+| DELETE | `/api/rubros/:id` | JWT + ADMIN | Eliminar rubro (409 si está en uso) |
+| POST | `/api/admin/prestadores` | JWT + ADMIN | Alta completa de un Jobit (usuario PROVIDER + perfil) |
+| GET | `/api/admin/usuarios/:id` | JWT + ADMIN | Datos de cualquier usuario con contactos y domicilio |
+| PUT | `/api/admin/usuarios/:id` | JWT + ADMIN | Actualizar datos de cualquier usuario |
+| DELETE | `/api/admin/usuarios/:id` | JWT + ADMIN | Baja completa del usuario (bloquea auto-eliminación) |
 | POST | `/api/upload` | JWT | Subir imagen (multipart, campo `myfile`; jpg/png/webp/gif, máx. 5 MB) |
 | GET | `/api/upload/:id` | — | Servir un archivo subido (fotos de perfil/galería) |
 
@@ -147,6 +153,7 @@ Fuentes personalizadas: **Shadows** y **Saira**.
 /servicios/:id   → Detalle de prestador
 /perfil          → Configuración de perfil del proveedor (datos, fotos, servicios)
 /favoritos       → Mis favoritos (prestadores guardados, requiere sesión)
+/admin/**        → Portal de administración (solo rol ADMIN)
 *                → redirige a /
 ```
 
@@ -159,6 +166,8 @@ Fuentes personalizadas: **Shadows** y **Saira**.
 **`/servicios`** — SearchBar de pills (Rubro/Subrubro/Ubicación/texto), cards con foto o iniciales, zonas, horario, contacto (celular si existe, sino email) + calificación con estrella naranja, y corazón de favorito persistido (logueado: toggle optimista contra `/api/favoritos`; anónimo: invita a iniciar sesión). Paginación "Ver más".
 
 **`/perfil`** — Configuración del proveedor: datos personales, teléfono y domicilio (`PUT /api/auth/me`), descripción, galería de fotos (subida inmediata) y CRUD de servicios con zonas y disponibilidad (`PUT /api/prestadores/:id` reemplaza el set completo). Acceso desde el menú del avatar ("Mi perfil").
+
+**`/admin`** — Portal de administración según los frames Admin de Figma (guard de rol ADMIN en `AdminLayout`; acceso desde el menú del avatar). Estructura: Inicio (Jobit/Servicios) → menús → `jobits/registrar` (alta completa), `jobits/buscar` (lista con modificar/eliminar), `jobits/:id` (modificación de datos del usuario + perfil + servicios), `servicios/registrar` (rubro + subrubros), `servicios/buscar` (filtro local con modificar/eliminar) y `servicios/:id` (edición de rubro y subrubros con reemplazo completo).
 
 ### Configuración de Vite
 
@@ -201,6 +210,6 @@ docker compose up -d --build
 ## Estado del proyecto
 
 - Migración Express + MongoDB → NestJS + Prisma + PostgreSQL **completada** (legado eliminado)
-- 23 tests unitarios (auth + prestadores) — `npm -w @jobit/api test`
+- 58 tests unitarios (auth, prestadores, reviews, favoritos, rubros, admin) — `npm -w @jobit/api test`
 - Visión completa (marketplace con bookings, reviews, microservicios): ver `.agent/project-context.md`
 - Pendientes próximos: bookings/solicitudes, votos "Es útil" en opiniones, verificación de email y recupero de contraseña

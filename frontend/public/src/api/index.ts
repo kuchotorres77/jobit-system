@@ -7,3 +7,4 @@ export * from "./prestadores";
 export * from "./reviews";
 export * from "./favoritos";
 export * from "./upload";
+export * from "./admin";
