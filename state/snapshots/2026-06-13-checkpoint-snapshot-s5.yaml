@@ -1,0 +1,12 @@
+checkpoint_date: 2026-06-13
+session_summary: >
+  Sesión 5 — Register.tsx: sección "Fotos" refactorizada para ser idéntica a la galería
+  de Configuración de perfil. Múltiples fotos con preview local (URL.createObjectURL),
+  botón ✕ con hover, botón + dashed, nota de primera foto como avatar, section propia.
+commits_created: []
+files_modified_count: 1
+files_created_count: 0
+backlog_items_added: []
+next_session_recommendation: >
+  Configurar SMTP (MAIL_USER + MAIL_PASS en .env) y verificar flujo email end-to-end.
+  Luego iniciar dominio Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED).

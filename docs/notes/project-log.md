@@ -4,6 +4,22 @@ Central project state. Entries older than 7 days should be purged.
 
 ---
 
+## [2026-06-13] Agent: Claude (sesión 5) — Fotos en Register idéntico a Perfil
+
+### Completed
+- **Register.tsx — sección Fotos**: refactorizada para ser idéntica a la galería de Configuración de perfil. `foto: File | null` → `fotos: File[]` + `previews: string[]`; previews locales con `URL.createObjectURL()` + revocación al eliminar; grilla de thumbnails 96×96 con botón ✕ (hover); botón `+` dashed igual que Perfil; nota "La primera foto se muestra como foto de perfil en el buscador."; section propia separada de Descripción; onSubmit sube todas las fotos en loop tras login. TypeScript sin errores.
+
+### Decisiones
+- Las fotos en Register son locales hasta el submit (sin JWT aún); se suben post-login en loop — misma UX que Perfil pero sin interacción de server durante el llenado del form.
+- Se usa `index` como key en el botón ✕ y se revoca la blob URL correspondiente para evitar memory leaks.
+
+### Next Steps
+- Configurar SMTP: `MAIL_USER` + `MAIL_PASS` en `.env` raíz (Gmail: App Password)
+- Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED)
+- Flujo "convertirme en proveedor" para cuentas Google (nacen CUSTOMER sin password)
+
+---
+
 ## [2026-06-13] Agent: Claude (sesión 4) — Eliminar foto de perfil, votos "Es útil", email verification + password reset
 
 ### Completed

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
@@ -57,7 +57,8 @@ export default function Register() {
   const [provincia, setProvincia] = useState<string>("");
   const [departamento, setDepartamento] = useState<string>("");
   const [localidad, setLocalidad] = useState<string>("");
-  const [foto, setFoto] = useState<File | null>(null);
+  const [fotos, setFotos] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -85,6 +86,20 @@ export default function Register() {
     }
     return { subrubroOptions: opciones, subrubroIdPorEtiqueta: mapa };
   }, [rubros]);
+
+  const onAgregarFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setPreviews((prev) => [...prev, URL.createObjectURL(file)]);
+    setFotos((prev) => [...prev, file]);
+  };
+
+  const onEliminarFoto = (index: number) => {
+    URL.revokeObjectURL(previews[index]);
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+    setFotos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!data.first_name || !data.last_name || !data.dni || !data.email) {
@@ -162,11 +177,11 @@ export default function Register() {
       });
 
       let avisoFoto = "";
-      if (foto) {
+      for (const archivo of fotos) {
         try {
-          await uploadFile(foto);
+          await uploadFile(archivo);
         } catch {
-          avisoFoto = " La foto no se pudo subir; podés intentarlo más adelante.";
+          avisoFoto = " Algunas fotos no se pudieron subir; podés intentarlo más adelante.";
         }
       }
 
@@ -355,7 +370,6 @@ export default function Register() {
             <label htmlFor="descripcion" className="block text-base text-gray-500 text-right font-semibold">
               Descripción de Perfil
             </label>
-
             <div className="border-t border-gray-400 pb-12 mt-1">
               <textarea
                 id="descripcion"
@@ -365,20 +379,47 @@ export default function Register() {
                  focus:outline-none focus:border-blue-700"
                 {...register("descripcion")}
               />
+            </div>
+          </section>
 
-              <div className="mt-4">
-                <label htmlFor="foto" className="block text-sm font-semibold text-gray-700 mb-1">
-                  Foto de perfil (opcional)
+          {/* FOTOS */}
+          <section>
+            <h2 className="text-base text-gray-500 text-right font-semibold">
+              Fotos
+            </h2>
+            <div className="border-t border-gray-400 pb-12 mt-1">
+              <div className="mt-6 flex flex-wrap gap-3 items-start">
+                {previews.map((src, index) => (
+                  <div key={src} className="relative group h-24 w-24">
+                    <img
+                      src={src}
+                      alt={`Foto ${index + 1}`}
+                      className="h-24 w-24 rounded-lg object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onEliminarFoto(index)}
+                      className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-red-500"
+                      aria-label="Eliminar foto"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+
+                <label className="h-24 w-24 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:border-orange-400 transition text-gray-400 text-3xl">
+                  +
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={onAgregarFoto}
+                  />
                 </label>
-                <input
-                  id="foto"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(e) => setFoto(e.target.files?.[0] ?? null)}
-                  className="block text-sm text-gray-600 file:mr-3 file:rounded-md file:border-0
-                   file:bg-orange-400 file:px-3 file:py-1.5 file:text-sm file:text-white file:cursor-pointer"
-                />
               </div>
+              <p className="mt-3 text-xs text-gray-500">
+                La primera foto se muestra como foto de perfil en el buscador.
+              </p>
             </div>
           </section>
 
