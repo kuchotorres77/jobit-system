@@ -153,3 +153,18 @@ export class ArchivoNoEncontradoException extends DomainException {
     super(`No existe el archivo ${id}`, HttpStatus.NOT_FOUND);
   }
 }
+
+export class TokenInvalidoException extends DomainException {
+  constructor() {
+    super('El enlace es inválido o ya expiró', HttpStatus.BAD_REQUEST);
+  }
+}
+
+export class PasswordRequeridoException extends DomainException {
+  constructor() {
+    super(
+      'Esta cuenta no tiene contraseña local; usá el inicio de sesión con Google',
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}

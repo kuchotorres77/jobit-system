@@ -33,3 +33,24 @@ export async function uploadFile(file: File): Promise<StorageFileInfo> {
 
   return data as StorageFileInfo;
 }
+
+export async function deleteFile(id: string): Promise<void> {
+  const headers: Record<string, string> = {};
+  const token = getToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_URL}/upload/${id}`, {
+    method: "DELETE",
+    headers,
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    const message = Array.isArray(data?.message)
+      ? data.message.join(". ")
+      : data?.message ?? `Error ${response.status}`;
+    throw new ApiError(response.status, message);
+  }
+}

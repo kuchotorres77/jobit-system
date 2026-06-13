@@ -1,21 +1,17 @@
 checkpoint_date: 2026-06-13
 session_summary: >
-  Portal de administración completo (9 pantallas frontend + módulo admin backend):
-  CRUD de Jobits y Servicios, RBAC admin-only, AdminLayout con Volver integrado
-  en header, rubros PUT/DELETE, NavbarUser con links admin y favoritos, 58 tests unitarios.
-commits_created:
-  - sha: 0857a84
-    subject: "docs(notes): checkpoint snapshot 2026-06-12 sesion 2"
-  - sha: "<pendiente — auto-commit sesión 3>"
-    subject: "feat(admin): portal administración completo, rubros CRUD, Volver en AdminLayout"
-files_modified_count: 19
-files_created_count: 20
+  Sesión 4 — Eliminar foto de perfil (DELETE /upload/:id + botón ✕ con hover en galería),
+  votos "Es útil" en reviews (toggle optimista, OptionalJwtAuthGuard, migración votos_reviews),
+  verificación de email y recupero de contraseña completos (MailService nodemailer,
+  EmailToken model, 2 migraciones, 3 páginas frontend, link en Login).
+  GOOGLE_CLIENT_ID ya configurado por el usuario. 58 tests pasando.
+commits_created: []
+files_modified_count: 24
+files_created_count: 11
 backlog_items_added:
+  - "Configurar MAIL_USER + MAIL_PASS en .env para activar emails (Gmail App Password)"
   - "Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED)"
-  - "Votos 'Es útil' en opiniones (tabla de votos)"
-  - "Verificación de email + recupero de contraseña"
-  - "Flujo 'convertirme en proveedor' para cuentas de Google"
+  - "Flujo 'convertirme en proveedor' para cuentas Google (nacen CUSTOMER sin password)"
 next_session_recommendation: >
-  Configurar Google OAuth Client ID en Google Cloud Console y setear GOOGLE_CLIENT_ID
-  en .env raíz para habilitar login con Google. Luego arrancar bookings/solicitudes
-  (siguiente dominio de la visión en .agent/project-context.md).
+  Configurar SMTP en .env (MAIL_USER + MAIL_PASS), verificar flujo email end-to-end
+  con una cuenta real, luego iniciar dominio Bookings/solicitudes.

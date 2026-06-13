@@ -85,6 +85,20 @@ export class UsersRepository {
     await this.prisma.user.update({ where: { id }, data: { role } });
   }
 
+  async setEmailVerificado(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { emailVerificado: true },
+    });
+  }
+
+  async setPassword(id: string, passwordHash: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { password: passwordHash },
+    });
+  }
+
   // Baja completa: las relaciones (prestador, contactos, reviews, etc.) caen en cascada
   async delete(id: string): Promise<void> {
     await this.prisma.user.delete({ where: { id } });

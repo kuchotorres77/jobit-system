@@ -8,6 +8,7 @@ import { SubRubroComponent } from "../auth/register/components/SubRubro";
 import {
   ApiError,
   archivoUrl,
+  deleteFile,
   getMe,
   getMiPrestador,
   getRubros,
@@ -51,6 +52,7 @@ export default function Perfil() {
   const [sinPerfilPrestador, setSinPerfilPrestador] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
+  const [eliminandoFoto, setEliminandoFoto] = useState<string | null>(null);
 
   const { register, handleSubmit, reset } = useForm<PerfilFormData>({
     defaultValues: {
@@ -205,6 +207,34 @@ export default function Perfil() {
       Swal.fire({ title: "Error al guardar", text: message, icon: "error" });
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const onEliminarFoto = async (id: string) => {
+    const confirmar = await Swal.fire({
+      title: "¿Eliminár esta foto?",
+      text: "Esta acción no se puede deshacer.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#f97316",
+    });
+    if (!confirmar.isConfirmed) return;
+
+    setEliminandoFoto(id);
+    try {
+      await deleteFile(id);
+      const actualizado = await getMiPrestador();
+      setPrestador(actualizado);
+    } catch (error) {
+      const message =
+        error instanceof ApiError
+          ? error.message
+          : "No se pudo conectar con el servidor";
+      Swal.fire({ title: "No se pudo eliminar la foto", text: message, icon: "error" });
+    } finally {
+      setEliminandoFoto(null);
     }
   };
 
@@ -366,12 +396,22 @@ export default function Perfil() {
               <div className="border-t border-gray-400 pb-12">
                 <div className="mt-6 flex flex-wrap gap-3 items-start">
                   {prestador.user.archivos.map((foto) => (
-                    <img
-                      key={foto.id}
-                      src={archivoUrl(foto.id)}
-                      alt="Foto del prestador"
-                      className="h-24 w-24 rounded-lg object-cover"
-                    />
+                    <div key={foto.id} className="relative group h-24 w-24">
+                      <img
+                        src={archivoUrl(foto.id)}
+                        alt="Foto del prestador"
+                        className={`h-24 w-24 rounded-lg object-cover transition ${eliminandoFoto === foto.id ? "opacity-40" : ""}`}
+                      />
+                      <button
+                        type="button"
+                        disabled={eliminandoFoto !== null}
+                        onClick={() => void onEliminarFoto(foto.id)}
+                        className="absolute top-1 right-1 h-5 w-5 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-red-500 disabled:cursor-not-allowed"
+                        aria-label="Eliminar foto"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
                   <label
                     className={`h-24 w-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-3xl text-gray-400 cursor-pointer hover:border-orange-400 hover:text-orange-400 transition ${subiendoFoto ? "opacity-50 pointer-events-none" : ""}`}

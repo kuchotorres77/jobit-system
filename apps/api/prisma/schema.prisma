@@ -36,25 +36,33 @@ enum Role {
   ADMIN
 }
 
+enum TipoEmailToken {
+  VERIFICACION
+  RECUPERO_PASSWORD
+}
+
 model User {
-  id            String         @id @default(uuid())
-  nombre        String
-  apellido      String
+  id               String         @id @default(uuid())
+  nombre           String
+  apellido         String
   // Opcionales: las cuentas creadas vía Google no tienen documento ni password
-  documento     String?        @unique
-  email         String         @unique
-  password      String?
-  sexo          Sexo?
-  role          Role           @default(CUSTOMER)
-  prestador     Prestador?
-  contactos     Contacto[]
-  direcciones   Direccion[]
-  archivos      StorageFile[]
-  refreshTokens RefreshToken[]
-  reviews       Review[]
-  favoritos     Favorito[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  documento        String?        @unique
+  email            String         @unique
+  password         String?
+  sexo             Sexo?
+  role             Role           @default(CUSTOMER)
+  emailVerificado  Boolean        @default(false)
+  prestador        Prestador?
+  contactos        Contacto[]
+  direcciones      Direccion[]
+  archivos         StorageFile[]
+  refreshTokens    RefreshToken[]
+  reviews          Review[]
+  favoritos        Favorito[]
+  votosReview      Voto[]
+  emailTokens      EmailToken[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@map("users")
 }
@@ -133,6 +141,7 @@ model Review {
   // 1 a 5 estrellas
   puntaje     Int
   comentario  String?
+  votos       Voto[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -140,6 +149,19 @@ model Review {
   @@unique([prestadorId, userId])
   @@index([prestadorId])
   @@map("reviews")
+}
+
+model Voto {
+  id        String   @id @default(uuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, userId])
+  @@index([reviewId])
+  @@map("votos_reviews")
 }
 
 model Rubro {
@@ -187,6 +209,20 @@ model Disponibilidad {
   hasta      String
 
   @@map("disponibilidades")
+}
+
+model EmailToken {
+  id        String         @id @default(uuid())
+  token     String         @unique
+  tipo      TipoEmailToken
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime       @default(now())
+
+  @@index([userId])
+  @@map("email_tokens")
 }
 
 model StorageFile {

@@ -8,6 +8,18 @@ export function getReviews(
 ): Promise<ReviewsListado> {
   return api.get<ReviewsListado>(
     `/prestadores/${prestadorId}/reviews?page=${page}&limit=${limit}`,
+    true,
+  );
+}
+
+export function votarReview(
+  prestadorId: string,
+  reviewId: string,
+): Promise<{ votos: number; miVoto: boolean }> {
+  return api.post<{ votos: number; miVoto: boolean }>(
+    `/prestadores/${prestadorId}/reviews/${reviewId}/votos`,
+    {},
+    true,
   );
 }
 

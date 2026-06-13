@@ -19,4 +19,8 @@ export class StorageRepository {
   findById(id: string): Promise<StorageFile | null> {
     return this.prisma.storageFile.findUnique({ where: { id } });
   }
+
+  deleteById(id: string): Promise<StorageFile> {
+    return this.prisma.storageFile.delete({ where: { id } });
+  }
 }

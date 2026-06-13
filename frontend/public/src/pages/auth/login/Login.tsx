@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import Swal from "sweetalert2";
 import { ApiError, login, loginConGoogle } from "@/api";
@@ -235,9 +235,9 @@ export default function Login() {
                 <label htmlFor="remember" className="ml-2 text-sm">
                   Recuerdame?
                 </label>
-                <a href="#" className="ml-auto hover:underline">
+                <Link to="/olvide-contrasena" className="ml-auto hover:underline">
                   Olvidaste tu contraseña?
-                </a>
+                </Link>
               </div>
 
               {/* Botones: mismo ancho los tres (máx. 400px, límite del botón de Google)

@@ -1,8 +1,11 @@
-import { createReadStream, existsSync } from 'fs';
+import { createReadStream, existsSync, unlinkSync } from 'fs';
 import { extname } from 'path';
 import { Injectable, Logger, StreamableFile } from '@nestjs/common';
 import { StorageFile } from '@prisma/client';
-import { ArchivoNoEncontradoException } from '../common/exceptions/domain.exception';
+import {
+  ArchivoNoEncontradoException,
+  OperacionNoPermitidaException,
+} from '../common/exceptions/domain.exception';
 import { StorageRepository } from './storage.repository';
 
 const CONTENT_TYPE_POR_EXTENSION: Record<string, string> = {
@@ -43,5 +46,23 @@ export class StorageService {
     return new StreamableFile(createReadStream(archivo.path), {
       type: contentType,
     });
+  }
+
+  async deleteArchivo(id: string, userId: string): Promise<void> {
+    this.logger.debug(`deleteArchivo: ${id} por usuario ${userId}`);
+
+    const archivo = await this.storageRepository.findById(id);
+    if (!archivo) {
+      throw new ArchivoNoEncontradoException(id);
+    }
+    if (archivo.userId !== userId) {
+      throw new OperacionNoPermitidaException();
+    }
+
+    if (existsSync(archivo.path)) {
+      unlinkSync(archivo.path);
+    }
+
+    await this.storageRepository.deleteById(id);
   }
 }

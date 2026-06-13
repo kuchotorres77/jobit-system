@@ -2,18 +2,22 @@ import { createHash, randomBytes } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Role, User } from '@prisma/client';
+import { Role, TipoEmailToken, User } from '@prisma/client';
 import { compare, hash } from 'bcryptjs';
 import {
   CredencialesInvalidasException,
   DocumentoYaRegistradoException,
   EmailYaRegistradoException,
+  PasswordRequeridoException,
   RefreshTokenInvalidoException,
+  TokenInvalidoException,
 } from '../common/exceptions/domain.exception';
 import { JwtPayload } from '../common/interfaces/authenticated-user.interface';
+import { MailService } from '../mail/mail.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
+import { EmailTokensRepository } from './email-tokens.repository';
 import { GoogleAuthService } from './google-auth.service';
 import {
   LoginResult,
@@ -25,6 +29,7 @@ import { PerfilUsuario, UsersRepository } from './users.repository';
 const BCRYPT_SALT_ROUNDS = 10;
 const REFRESH_TOKEN_BYTES = 48;
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
+const MS_POR_HORA = 60 * 60 * 1000;
 
 @Injectable()
 export class AuthService {
@@ -33,7 +38,9 @@ export class AuthService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly refreshTokensRepository: RefreshTokensRepository,
+    private readonly emailTokensRepository: EmailTokensRepository,
     private readonly googleAuthService: GoogleAuthService,
+    private readonly mailService: MailService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
   ) {}
@@ -67,7 +74,7 @@ export class AuthService {
       direccion: dto.direccion,
     });
 
-    return {
+    const registrado: RegisteredUser = {
       id: user.id,
       nombre: user.nombre,
       apellido: user.apellido,
@@ -76,6 +83,100 @@ export class AuthService {
       sexo: user.sexo,
       role: user.role,
     };
+
+    // Enviar email de verificación en background (no bloquea el registro)
+    this.enviarTokenVerificacion(user.id, user.email, user.nombre).catch(
+      (err) => this.logger.error(`No se pudo enviar email de verificación: ${String(err)}`),
+    );
+
+    return registrado;
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    this.logger.debug('verifyEmail');
+
+    const emailToken = await this.emailTokensRepository.findByToken(token);
+    if (
+      !emailToken ||
+      emailToken.tipo !== TipoEmailToken.VERIFICACION ||
+      emailToken.usedAt ||
+      emailToken.expiresAt.getTime() < Date.now()
+    ) {
+      throw new TokenInvalidoException();
+    }
+
+    await Promise.all([
+      this.usersRepository.setEmailVerificado(emailToken.userId),
+      this.emailTokensRepository.markUsed(emailToken.id),
+    ]);
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    this.logger.debug(`forgotPassword: ${email}`);
+
+    const user = await this.usersRepository.findByEmail(email);
+    // No revelar si el email existe (respuesta siempre 204)
+    if (!user?.password) return;
+
+    await this.emailTokensRepository.deleteByUserAndTipo(
+      user.id,
+      TipoEmailToken.RECUPERO_PASSWORD,
+    );
+
+    const token = randomBytes(32).toString('hex');
+    await this.emailTokensRepository.create(
+      user.id,
+      token,
+      TipoEmailToken.RECUPERO_PASSWORD,
+      new Date(Date.now() + MS_POR_HORA),
+    );
+
+    await this.mailService.sendPasswordResetEmail(user.email, user.nombre, token);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    this.logger.debug('resetPassword');
+
+    const emailToken = await this.emailTokensRepository.findByToken(token);
+    if (
+      !emailToken ||
+      emailToken.tipo !== TipoEmailToken.RECUPERO_PASSWORD ||
+      emailToken.usedAt ||
+      emailToken.expiresAt.getTime() < Date.now()
+    ) {
+      throw new TokenInvalidoException();
+    }
+
+    const user = await this.usersRepository.findById(emailToken.userId);
+    if (!user?.password) {
+      throw new PasswordRequeridoException();
+    }
+
+    const passwordHash = await hash(newPassword, BCRYPT_SALT_ROUNDS);
+    await Promise.all([
+      this.usersRepository.setPassword(emailToken.userId, passwordHash),
+      this.emailTokensRepository.markUsed(emailToken.id),
+      this.refreshTokensRepository.revokeAllForUser(emailToken.userId),
+    ]);
+  }
+
+  private async enviarTokenVerificacion(
+    userId: string,
+    email: string,
+    nombre: string,
+  ): Promise<void> {
+    await this.emailTokensRepository.deleteByUserAndTipo(
+      userId,
+      TipoEmailToken.VERIFICACION,
+    );
+    const token = randomBytes(32).toString('hex');
+    await this.emailTokensRepository.create(
+      userId,
+      token,
+      TipoEmailToken.VERIFICACION,
+      new Date(Date.now() + 24 * MS_POR_HORA),
+    );
+    await this.mailService.sendVerificationEmail(email, nombre, token);
   }
 
   async login(dto: LoginDto): Promise<LoginResult> {

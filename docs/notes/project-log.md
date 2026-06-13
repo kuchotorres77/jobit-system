@@ -4,6 +4,30 @@ Central project state. Entries older than 7 days should be purged.
 
 ---
 
+## [2026-06-13] Agent: Claude (sesión 4) — Eliminar foto de perfil, votos "Es útil", email verification + password reset
+
+### Completed
+- **Eliminar imagen en Perfil**: `DELETE /upload/:id` (ownership check + borra disco + DB); frontend: botón ✕ con overlay hover en cada foto, confirmación Swal, estado `eliminandoFoto`, actualización inmediata de galería
+- **Votos "Es útil" en reviews**: modelo `Voto` (Prisma, migración `votos_reviews`); `toggleVoto` idempotente; `GET reviews` ahora usa `OptionalJwtAuthGuard` para servir `miVoto` si hay sesión; `POST /reviews/:reviewId/votos` toggle con respuesta `{ votos, miVoto }`; frontend: botón "Es útil" con `ThumbsUp`, conteo, update optimista + rollback en error
+- **Verificación de email**: modelo `EmailToken` (Prisma, migración `email_verificacion_y_recupero`); `GET /auth/verify-email?token=xxx` marca email verificado; se envía al registrar en background; página `/verificar-email` en el frontend
+- **Recupero de contraseña**: `POST /auth/forgot-password` (envía email solo si tiene password local; no revela si existe); `POST /auth/reset-password` (valida token, cambia pass, revoca todos los refresh tokens); páginas `/olvide-contrasena` y `/nueva-contrasena` en el frontend; link en Login ya apunta a `/olvide-contrasena`
+- **MailService** (nodemailer): configurable vía `MAIL_HOST/PORT/USER/PASS/FROM + APP_URL`; emails de verificación y recupero con templates HTML; `.env.example` actualizado
+- **`GOOGLE_CLIENT_ID` configurado** por el usuario: login con Google ya funciona en esta instancia
+- 58 tests pasando; backend y frontend compilan sin errores de TypeScript
+
+### Decisiones / incidentes
+- `Review.votos` y `Review.miVoto` se marcaron opcionales en el tipo frontend para compatibilidad con endpoints que devuelven `ReviewCompleta` sin mapear (propia, opinar)
+- `forgotPassword` siempre responde 204 aunque el email no exista (no revela si está registrado); solo envía si tiene password local (cuentas Google no tienen recupero por esta vía)
+- `verifyEmail` y `resetPassword` invalidan el token con `usedAt` (no lo borran) para auditoría
+- `resetPassword` revoca todos los refresh tokens del usuario al cambiar la contraseña
+
+### Next Steps
+- Configurar SMTP: `MAIL_USER` + `MAIL_PASS` en `.env` raíz (Gmail: App Password)
+- Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED)
+- Flujo "convertirme en proveedor" para cuentas creadas con Google (nacen CUSTOMER sin password)
+
+---
+
 ## [2026-06-13] Agent: Claude (sesión 3) — Portal admin, rubros update/delete, Volver en AdminLayout
 
 ### Completed
@@ -45,18 +69,18 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 
 ### Completed Features
 
-- **Auth**: register (rol PROVIDER directo) / login JWT + **refresh tokens** opacos con rotación y detección de reuso / **login con Google** (GIS; crea CUSTOMER si no existe; requiere `GOOGLE_CLIENT_ID`) / logout con revocación / **RBAC** (`Role` CUSTOMER/PROVIDER/ADMIN, `@Roles` + `RolesGuard`; `POST /rubros` solo ADMIN) / `GET-PUT /auth/me` (datos + teléfono + domicilio)
+- **Auth**: register (rol PROVIDER directo) / login JWT + **refresh tokens** opacos con rotación y detección de reuso / **login con Google** (GIS; `GOOGLE_CLIENT_ID` configurado ✓) / logout con revocación / **RBAC** (`Role` CUSTOMER/PROVIDER/ADMIN) / `GET-PUT /auth/me` / **verificación de email** (token 24h, `GET /auth/verify-email`) / **recupero de contraseña** (`POST /auth/forgot-password` + `POST /auth/reset-password`)
 - **Prestadores**: CRUD con ownership, `GET /prestadores/me`, listado público con filtros (`q` insensible a tildes vía `unaccent`) + `rating` agregado por página, teléfono/domicilio persistidos desde el register
-- **Reviews**: puntaje 1-5 + comentario, única por usuario/prestador (upsert), resumen con promedio/distribución, dueño bloqueado
+- **Reviews**: puntaje 1-5 + comentario, única por usuario/prestador (upsert), resumen con promedio/distribución, dueño bloqueado, **votos "Es útil"** (toggle, conteo por review, `miVoto` para sesión autenticada)
 - **Favoritos**: persistidos, endpoints idempotentes, página "Mis favoritos" paginada
-- **Storage**: upload solo imágenes (5 MB), `GET /upload/:id` público, fotos en cards/detalle/perfil, volumen `vstorage`
-- **Admin portal**: `AdminLayout` (guard ADMIN, breadcrumb + Volver), 9 pantallas completas (inicio, menú Jobit/Servicios, registrar/buscar/modificar Jobit, registrar/buscar/detalle Servicio), `AdminService` + `AdminController` en backend, `PUT/DELETE /rubros/:id` admin-only
-- Frontend: `/servicios` (+rating y corazón persistido), `/servicios/:id` (+opiniones y evaluación general según frame Figma), `/perfil` (config completa del proveedor), `/favoritos`, `/admin/*` (portal administración), login con botón de Google y botones unificados (Roboto 40px)
-- Infra: Swagger en `/api/docs`, rate limiting, 58 tests unitarios, 6 migraciones Prisma, seed completo (10 prestadores demo + 30 opiniones + `admin@jobit.demo`, password `Jobit123!`)
+- **Storage**: upload solo imágenes (5 MB), `GET /upload/:id` público, **`DELETE /upload/:id`** (ownership check + elimina disco + DB), fotos en cards/detalle/perfil con botón ✕ en hover
+- **Admin portal**: `AdminLayout` (guard ADMIN, breadcrumb + Volver), 9 pantallas completas, `AdminService` + `AdminController`, `PUT/DELETE /rubros/:id` admin-only
+- Frontend: `/servicios` (+rating y corazón persistido), `/servicios/:id` (+opiniones con botón "Es útil"), `/perfil` (config + eliminar fotos), `/favoritos`, `/admin/*`, `/verificar-email`, `/olvide-contrasena`, `/nueva-contrasena`, login con botón Google y link "Olvidaste tu contraseña?"
+- Infra: Swagger en `/api/docs`, rate limiting, **58 tests unitarios**, **8 migraciones Prisma**, nodemailer (SMTP configurable), seed completo (`admin@jobit.demo` / `Jobit123!`)
 
 ### In Progress
 
-- Nada en curso.
+- Nada en curso. Falta configurar `MAIL_USER` + `MAIL_PASS` en `.env` para activar emails.
 
 ---
 

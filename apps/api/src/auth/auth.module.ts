@@ -2,8 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule, JwtSignOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { MailModule } from '../mail/mail.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { EmailTokensRepository } from './email-tokens.repository';
 import { GoogleAuthService } from './google-auth.service';
 import { RefreshTokensRepository } from './refresh-tokens.repository';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -12,6 +14,7 @@ import { UsersRepository } from './users.repository';
 @Module({
   imports: [
     PassportModule,
+    MailModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -30,6 +33,7 @@ import { UsersRepository } from './users.repository';
     AuthService,
     UsersRepository,
     RefreshTokensRepository,
+    EmailTokensRepository,
     GoogleAuthService,
     JwtStrategy,
   ],

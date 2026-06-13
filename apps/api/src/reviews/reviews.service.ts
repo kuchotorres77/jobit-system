@@ -9,11 +9,12 @@ import { PrestadoresRepository } from '../prestadores/prestadores.repository';
 import { CreateReviewDto } from './dto/create-review.dto';
 import {
   ReviewCompleta,
+  ReviewConVotos,
   ReviewsRepository,
   ReviewsResumen,
 } from './reviews.repository';
 
-export interface ReviewsListado extends PaginatedResult<ReviewCompleta> {
+export interface ReviewsListado extends PaginatedResult<ReviewConVotos> {
   resumen: ReviewsResumen;
 }
 
@@ -53,6 +54,7 @@ export class ReviewsService {
     prestadorId: string,
     page: number,
     limit: number,
+    userId?: string,
   ): Promise<ReviewsListado> {
     this.logger.debug(`listar: prestador ${prestadorId} page=${page}`);
 
@@ -63,7 +65,7 @@ export class ReviewsService {
 
     const skip = (page - 1) * limit;
     const [{ data, total }, resumen] = await Promise.all([
-      this.reviewsRepository.findByPrestador(prestadorId, skip, limit),
+      this.reviewsRepository.findByPrestador(prestadorId, skip, limit, userId),
       this.reviewsRepository.resumen(prestadorId),
     ]);
 
@@ -96,5 +98,20 @@ export class ReviewsService {
     if (!eliminada) {
       throw new ReviewNoEncontradaException();
     }
+  }
+
+  async votar(
+    prestadorId: string,
+    reviewId: string,
+    userId: string,
+  ): Promise<{ votos: number; miVoto: boolean }> {
+    this.logger.debug(`votar: review ${reviewId} por usuario ${userId}`);
+
+    const prestador = await this.prestadoresRepository.findById(prestadorId);
+    if (!prestador) {
+      throw new PrestadorNoEncontradoException(prestadorId);
+    }
+
+    return this.reviewsRepository.toggleVoto(reviewId, userId);
   }
 }

@@ -177,6 +177,8 @@ export interface Review {
     nombre: string;
     apellido: string;
   };
+  votos?: number;
+  miVoto?: boolean;
 }
 
 export interface ReviewsResumen {

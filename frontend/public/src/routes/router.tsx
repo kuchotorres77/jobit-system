@@ -2,6 +2,9 @@ import { Navigate, createBrowserRouter } from "react-router-dom";
 import Home from '../pages/home/Home'
 import Login from '../pages/auth/login/Login'
 import Register from '../pages/auth/register/Register'
+import VerificarEmail from '../pages/auth/VerificarEmail'
+import OlvideContrasena from '../pages/auth/OlvideContrasena'
+import NuevaContrasena from '../pages/auth/NuevaContrasena'
 import Servicios from '../pages/servicios/Servicios'
 import PrestadorDetalle from '../pages/servicios/PrestadorDetalle'
 import Perfil from '../pages/perfil/Perfil'
@@ -26,6 +29,9 @@ export const router = createBrowserRouter([
         { index: true, element: <Home /> },
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
+        { path: 'verificar-email', element: <VerificarEmail /> },
+        { path: 'olvide-contrasena', element: <OlvideContrasena /> },
+        { path: 'nueva-contrasena', element: <NuevaContrasena /> },
         { path: 'servicios', element: <Servicios /> },
         { path: 'servicios/:id', element: <PrestadorDetalle /> },
         { path: 'perfil', element: <Perfil /> },

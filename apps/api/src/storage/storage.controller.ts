@@ -1,6 +1,9 @@
 import {
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Post,
@@ -58,5 +61,17 @@ export class StorageController {
   @ApiOperation({ summary: 'Descargar un archivo subido (público)' })
   getArchivo(@Param('id', ParseUUIDPipe) id: string): Promise<StreamableFile> {
     return this.storageService.getArchivo(id);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Eliminar un archivo propio' })
+  deleteArchivo(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<void> {
+    return this.storageService.deleteArchivo(id, user.id);
   }
 }

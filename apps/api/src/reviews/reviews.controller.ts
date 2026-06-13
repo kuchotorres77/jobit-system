@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
@@ -26,14 +27,21 @@ export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Get()
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({
     summary: 'Listar opiniones de un prestador con resumen de calificaciones',
   })
   listar(
     @Param('prestadorId', ParseUUIDPipe) prestadorId: string,
     @Query() query: PaginationQueryDto,
+    @CurrentUser() user?: AuthenticatedUser,
   ): Promise<ReviewsListado> {
-    return this.reviewsService.listar(prestadorId, query.page, query.limit);
+    return this.reviewsService.listar(
+      prestadorId,
+      query.page,
+      query.limit,
+      user?.id,
+    );
   }
 
   @Post()
@@ -71,5 +79,17 @@ export class ReviewsController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<void> {
     return this.reviewsService.eliminarPropia(prestadorId, user.id);
+  }
+
+  @Post(':reviewId/votos')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Marcar o desmarcar una opinión como útil (toggle)' })
+  votar(
+    @Param('prestadorId', ParseUUIDPipe) prestadorId: string,
+    @Param('reviewId', ParseUUIDPipe) reviewId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<{ votos: number; miVoto: boolean }> {
+    return this.reviewsService.votar(prestadorId, reviewId, user.id);
   }
 }

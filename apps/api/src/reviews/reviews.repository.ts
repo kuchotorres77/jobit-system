@@ -2,20 +2,51 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
-const reviewInclude = {
+const baseInclude = {
   user: {
     select: { id: true, nombre: true, apellido: true },
   },
+  _count: { select: { votos: true } },
 } satisfies Prisma.ReviewInclude;
 
 export type ReviewCompleta = Prisma.ReviewGetPayload<{
-  include: typeof reviewInclude;
+  include: typeof baseInclude;
 }>;
+
+export interface ReviewConVotos {
+  id: string;
+  prestadorId: string;
+  userId: string;
+  puntaje: number;
+  comentario: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  user: { id: string; nombre: string; apellido: string };
+  votos: number;
+  miVoto: boolean;
+}
 
 export interface ReviewsResumen {
   promedio: number;
   total: number;
   distribucion: Record<number, number>;
+}
+
+function mapReview(
+  r: ReviewCompleta & { votos?: { id: string }[] },
+): ReviewConVotos {
+  return {
+    id: r.id,
+    prestadorId: r.prestadorId,
+    userId: r.userId,
+    puntaje: r.puntaje,
+    comentario: r.comentario,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    user: r.user,
+    votos: r._count.votos,
+    miVoto: (r.votos?.length ?? 0) > 0,
+  };
 }
 
 @Injectable()
@@ -32,7 +63,7 @@ export class ReviewsRepository {
       where: { prestadorId_userId: { prestadorId, userId } },
       create: { prestadorId, userId, puntaje, comentario },
       update: { puntaje, comentario: comentario ?? null },
-      include: reviewInclude,
+      include: baseInclude,
     });
   }
 
@@ -40,18 +71,30 @@ export class ReviewsRepository {
     prestadorId: string,
     skip: number,
     take: number,
-  ): Promise<{ data: ReviewCompleta[]; total: number }> {
-    const [data, total] = await this.prisma.$transaction([
+    userId?: string,
+  ): Promise<{ data: ReviewConVotos[]; total: number }> {
+    const include: Prisma.ReviewInclude = {
+      ...baseInclude,
+      votos: userId ? { where: { userId }, select: { id: true } } : false,
+    };
+
+    const [raw, total] = await this.prisma.$transaction([
       this.prisma.review.findMany({
         where: { prestadorId },
         skip,
         take,
         orderBy: { createdAt: 'desc' },
-        include: reviewInclude,
+        include,
       }),
       this.prisma.review.count({ where: { prestadorId } }),
     ]);
-    return { data, total };
+
+    return {
+      data: (raw as (ReviewCompleta & { votos?: { id: string }[] })[]).map(
+        mapReview,
+      ),
+      total,
+    };
   }
 
   findPropia(
@@ -60,7 +103,7 @@ export class ReviewsRepository {
   ): Promise<ReviewCompleta | null> {
     return this.prisma.review.findUnique({
       where: { prestadorId_userId: { prestadorId, userId } },
-      include: reviewInclude,
+      include: baseInclude,
     });
   }
 
@@ -92,5 +135,23 @@ export class ReviewsRepository {
       total,
       distribucion,
     };
+  }
+
+  async toggleVoto(
+    reviewId: string,
+    userId: string,
+  ): Promise<{ votos: number; miVoto: boolean }> {
+    const existente = await this.prisma.voto.findUnique({
+      where: { reviewId_userId: { reviewId, userId } },
+    });
+
+    if (existente) {
+      await this.prisma.voto.delete({ where: { id: existente.id } });
+    } else {
+      await this.prisma.voto.create({ data: { reviewId, userId } });
+    }
+
+    const votos = await this.prisma.voto.count({ where: { reviewId } });
+    return { votos, miVoto: !existente };
   }
 }

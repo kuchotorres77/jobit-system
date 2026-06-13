@@ -43,3 +43,15 @@ export async function logout(): Promise<void> {
   }
   clearSession();
 }
+
+export function verifyEmail(token: string): Promise<void> {
+  return api.get<void>(`/auth/verify-email?token=${encodeURIComponent(token)}`);
+}
+
+export function forgotPassword(email: string): Promise<void> {
+  return api.post<void>("/auth/forgot-password", { email });
+}
+
+export function resetPassword(token: string, password: string): Promise<void> {
+  return api.post<void>("/auth/reset-password", { token, password });
+}

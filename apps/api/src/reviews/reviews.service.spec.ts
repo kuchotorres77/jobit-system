@@ -5,7 +5,7 @@ import {
   ReviewNoEncontradaException,
 } from '../common/exceptions/domain.exception';
 import { PrestadoresRepository } from '../prestadores/prestadores.repository';
-import { ReviewCompleta, ReviewsRepository } from './reviews.repository';
+import { ReviewCompleta, ReviewConVotos, ReviewsRepository } from './reviews.repository';
 import { ReviewsService } from './reviews.service';
 
 describe('ReviewsService', () => {
@@ -24,7 +24,21 @@ describe('ReviewsService', () => {
     createdAt: new Date(),
     updatedAt: new Date(),
     user: { id: 'user-1', nombre: 'Juan', apellido: 'Pérez' },
+    _count: { votos: 0 },
   } as ReviewCompleta;
+
+  const reviewConVotos: ReviewConVotos = {
+    id: 'review-1',
+    prestadorId: 'prestador-1',
+    userId: 'user-1',
+    puntaje: 5,
+    comentario: 'Excelente',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    user: { id: 'user-1', nombre: 'Juan', apellido: 'Pérez' },
+    votos: 0,
+    miVoto: false,
+  };
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -38,6 +52,7 @@ describe('ReviewsService', () => {
             findPropia: jest.fn(),
             deletePropia: jest.fn(),
             resumen: jest.fn(),
+            toggleVoto: jest.fn(),
           },
         },
         {
@@ -95,7 +110,7 @@ describe('ReviewsService', () => {
     it('should return paginated reviews with resumen', async () => {
       prestadoresRepository.findById.mockResolvedValue(prestador as never);
       reviewsRepository.findByPrestador.mockResolvedValue({
-        data: [review],
+        data: [reviewConVotos],
         total: 1,
       });
       reviewsRepository.resumen.mockResolvedValue({
@@ -110,6 +125,7 @@ describe('ReviewsService', () => {
         'prestador-1',
         10,
         10,
+        undefined,
       );
       expect(result.meta).toEqual({ total: 1, page: 2, limit: 10 });
       expect(result.resumen.promedio).toBe(5);

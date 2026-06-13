@@ -7,10 +7,12 @@ import {
   getMiReview,
   getReviews,
   opinar,
+  votarReview,
   Prestador,
   Review,
   ReviewsResumen,
 } from "@/api";
+import { ThumbsUp } from "lucide-react";
 import { useSession } from "@/hooks/useSession";
 import { Estrellas, EstrellasInput } from "./Estrellas";
 
@@ -42,6 +44,7 @@ export function Opiniones({ prestador, onResumen }: OpinionesProps) {
   const [puntaje, setPuntaje] = useState(0);
   const [comentario, setComentario] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [votando, setVotando] = useState<string | null>(null);
 
   const cargar = useCallback(
     async (pagina: number, reemplazar: boolean) => {
@@ -109,6 +112,41 @@ export function Opiniones({ prestador, onResumen }: OpinionesProps) {
     }
   };
 
+  const votar = async (reviewId: string) => {
+    if (!sessionUser) {
+      navigate("/login");
+      return;
+    }
+    setVotando(reviewId);
+    // Optimistic update
+    setReviews((prev) =>
+      prev.map((r) => {
+        if (r.id !== reviewId) return r;
+        const yaVoto = r.miVoto ?? false;
+        const totalVotos = r.votos ?? 0;
+        return { ...r, votos: yaVoto ? totalVotos - 1 : totalVotos + 1, miVoto: !yaVoto };
+      }),
+    );
+    try {
+      const { votos, miVoto } = await votarReview(prestador.id, reviewId);
+      setReviews((prev) =>
+        prev.map((r) => (r.id === reviewId ? { ...r, votos, miVoto } : r)),
+      );
+    } catch {
+      // Revertir si falló
+      setReviews((prev) =>
+        prev.map((r) => {
+          if (r.id !== reviewId) return r;
+          const yaVoto = r.miVoto ?? false;
+          const totalVotos = r.votos ?? 0;
+          return { ...r, votos: yaVoto ? totalVotos - 1 : totalVotos + 1, miVoto: !yaVoto };
+        }),
+      );
+    } finally {
+      setVotando(null);
+    }
+  };
+
   const eliminar = async () => {
     setEnviando(true);
     try {
@@ -155,9 +193,27 @@ export function Opiniones({ prestador, onResumen }: OpinionesProps) {
                   {review.comentario && (
                     <p className="text-sm text-gray-900 mt-2">{review.comentario}</p>
                   )}
-                  <p className="text-xs text-gray-400 mt-1.5">
-                    {review.user.nombre} {review.user.apellido}
-                  </p>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <p className="text-xs text-gray-400">
+                      {review.user.nombre} {review.user.apellido}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={votando === review.id}
+                      onClick={() => void votar(review.id)}
+                      className={`flex items-center gap-1 text-xs transition disabled:opacity-50 ${
+                        review.miVoto
+                          ? "text-jobit-violeta-700 font-medium"
+                          : "text-gray-400 hover:text-jobit-violeta-700"
+                      }`}
+                    >
+                      <ThumbsUp size={13} />
+                      Es útil
+                      {(review.votos ?? 0) > 0 && (
+                        <span className="ml-0.5">({review.votos})</span>
+                      )}
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

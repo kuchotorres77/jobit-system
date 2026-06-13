@@ -1,38 +1,39 @@
-# Last Checkpoint — 2026-06-13 (sesión 3)
+# Last Checkpoint — 2026-06-13 (sesión 4)
 
 ## Sesión summary
 
-Sesión de admin portal: módulo backend `AdminService`/`AdminController` (CRUD de Jobits: crear/buscar/modificar/eliminar, todos con guard ADMIN), endpoints `PUT/DELETE /rubros/:id` admin-only con `RubroEnUsoException` (409) en cascade FK. Frontend: 9 pantallas del portal (`AdminInicio`, `AdminMenuJobit`, `AdminMenuServicios`, `AdminRegistrarJobit`, `AdminBuscarJobit`, `AdminModifJobit`, `AdminRegistrarServicio`, `AdminBuscarServicio`, `AdminServicioDetalle`), componentes `MenuOpciones` y `Volver`, `AdminLayout` con guard de rol ADMIN y botón Volver integrado en el header (mismo nivel del breadcrumb, `flex justify-between`) usando `destinoVolver(pathname)`. NavbarUser con links "Mis favoritos" y "Administración" (solo ADMIN). 58 tests unitarios pasando.
+Sesión de UX + features de seguridad: (1) eliminar foto de perfil — `DELETE /upload/:id` con ownership check, borra el archivo del disco y DB; botón ✕ aparece en hover sobre cada foto de la galería en `/perfil`. (2) Votos "Es útil" — modelo `Voto` (migración `votos_reviews`), toggle idempotente `POST /prestadores/:id/reviews/:id/votos`, `OptionalJwtAuthGuard` en el listing para servir `miVoto` contextual; botón "Es útil" con `ThumbsUp` icon y update optimista en `Opiniones.tsx`. (3) Verificación de email + recupero de contraseña — modelo `EmailToken`, `MailService` con nodemailer SMTP genérico, endpoints `GET /auth/verify-email`, `POST /auth/forgot-password`, `POST /auth/reset-password`, 3 páginas frontend (`/verificar-email`, `/olvide-contrasena`, `/nueva-contrasena`), link en Login apunta a la página real. `GOOGLE_CLIENT_ID` ya configurado por el usuario. 58 tests pasando, 0 errores TypeScript.
 
 ## Estado actual
 
 - Branch: `main` (tracking `origin/main`)
-- Last commit: `0857a84 docs(notes): checkpoint snapshot 2026-06-12 sesion 2`
-- Working tree: 19 archivos modificados + 20 nuevos (todo trabajo del agente, auto-commit pendiente)
+- Last commit: `365b2b7 fix(components): JobitDiaHora sincroniza value externo al precargar datos`
+- Working tree: 24 archivos modificados + 11 nuevos (todo work del agente — auto-commit pendiente)
 - Stack Docker: postgres (5435) + api-nest (13005) + frontend (80)
 - Plan activo: no hay sistema de planes; se trabaja por inferencia desde `docs/notes/`
 
 ## Próximo step recomendado
 
-1. **Usuario**: crear OAuth Client ID en Google Cloud Console → `GOOGLE_CLIENT_ID=` en `.env` raíz → `docker compose up -d --build` (sin esto el botón de Google no aparece).
-2. **Desarrollo**: bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED en `.agent/project-context.md`).
+1. **Usuario — SMTP**: en `.env` raíz, completar `MAIL_USER=` + `MAIL_PASS=` (Gmail: App Password en myaccount.google.com → Seguridad → Contraseñas de aplicación), luego `docker compose up -d --build` para recargar.
+2. **Verificar flujo email**: registrar cuenta nueva → confirmar que llega el email de verificación.
+3. **Desarrollo**: bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED).
 
 ## Comandos para resumir
 
 1. `/workflows-project-resume` (recovery completo)
-2. Verificar stack: `docker compose ps` + `http://localhost/admin`
+2. Verificar stack: `docker compose ps` + `http://localhost/perfil` (galería con botón ✕)
 
 ## Backlog discovered esta sesión
 
+- Configurar MAIL_USER + MAIL_PASS para activar emails (no bloquea nada, el register sigue funcionando)
 - Bookings/solicitudes (siguiente dominio de la visión)
-- Votos "Es útil" en opiniones (frame Buscar-Jobit 2; necesita tabla de votos)
-- Verificación de email + recupero de contraseña
-- Flujo "convertirme en proveedor" para cuentas de Google (nacen CUSTOMER sin documento/password)
+- Flujo "convertirme en proveedor" para cuentas Google (nacen CUSTOMER sin password)
 
 ## Notas para próxima sesión
 
-- Admin portal construido sin poder ver los frames Figma (429 en todos los renders) — validar visualmente contra los frames cuando la rate limit se libere.
-- `apps/api-service/.env.docker` estuvo trackeado en git: credenciales Mongo en la historia — rotar si se reutilizaron.
-- Sesiones logueadas antes del RBAC tienen JWT sin `role` → re-login para endpoints con guard de rol.
+- `forgotPassword` no funciona para cuentas Google (no tienen password local) — esas cuentas necesitan el flujo "convertirme en proveedor" para adquirir password.
+- `OptionalJwtAuthGuard`: override de `handleRequest` que no lanza en ausencia de token — permite que endpoints públicos sirvan datos contextuales cuando hay sesión.
+- El email de verificación se envía en background (`.catch(logger.error)`) — el register NO falla si el SMTP no está configurado.
+- `resetPassword` revoca TODOS los refresh tokens del usuario al cambiar la contraseña.
+- GOOGLE_CLIENT_ID configurado y funcional en esta instancia.
 - Usuarios demo: `*@jobit.demo` / `Jobit123!`; admin: `admin@jobit.demo` (ADMIN).
-- `SubRubroComponent` bug corregido: `i > 0` → `subRubroArray.length > 1` para poder borrar el primer ítem.

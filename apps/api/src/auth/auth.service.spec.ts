@@ -11,9 +11,11 @@ import {
   RefreshTokenInvalidoException,
 } from '../common/exceptions/domain.exception';
 import { AuthService } from './auth.service';
+import { EmailTokensRepository } from './email-tokens.repository';
 import { GoogleAuthService } from './google-auth.service';
 import { RefreshTokensRepository } from './refresh-tokens.repository';
 import { UsersRepository } from './users.repository';
+import { MailService } from '../mail/mail.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -31,6 +33,7 @@ describe('AuthService', () => {
     password: 'hashed',
     sexo: null,
     role: Role.CUSTOMER,
+    emailVerificado: false,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -82,6 +85,22 @@ describe('AuthService', () => {
           provide: ConfigService,
           useValue: {
             get: jest.fn().mockReturnValue(7),
+          },
+        },
+        {
+          provide: EmailTokensRepository,
+          useValue: {
+            create: jest.fn(),
+            findByToken: jest.fn(),
+            markUsed: jest.fn(),
+            deleteByUserAndTipo: jest.fn(),
+          },
+        },
+        {
+          provide: MailService,
+          useValue: {
+            sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+            sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
