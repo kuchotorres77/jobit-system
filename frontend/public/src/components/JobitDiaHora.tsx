@@ -84,7 +84,7 @@ export const JobitDiaHora = ({
         <div key={i} className="relative mt-6">
           <div className="border rounded-md p-4 shadow-md grid grid-cols-1 sm:grid-cols-6 gap-4">
             {/* Día */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-6">
               <JobitSelect
                 label="Día"
                 options={diasOpt}
@@ -97,7 +97,7 @@ export const JobitDiaHora = ({
             </div>
 
             {/* Desde */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <JobitInputControlado
                 label="Desde"
                 type="time"
@@ -109,7 +109,7 @@ export const JobitDiaHora = ({
             </div>
 
             {/* Hasta */}
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-3">
               <JobitInputControlado
                 label="Hasta"
                 type="time"
