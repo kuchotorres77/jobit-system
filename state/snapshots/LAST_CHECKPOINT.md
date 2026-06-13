@@ -1,26 +1,26 @@
-# Last Checkpoint — 2026-06-12 (sesión 2)
+# Last Checkpoint — 2026-06-13 (sesión 3)
 
 ## Sesión summary
 
-Sesión grande de features sobre `apps/api` + frontend: refresh tokens opacos con rotación y detección de reuso, RBAC (CUSTOMER/PROVIDER/ADMIN, registro crea PROVIDER, rubros solo ADMIN), login con Google (GIS; requiere `GOOGLE_CLIENT_ID`), vista `/perfil` del proveedor (datos, teléfono/domicilio, fotos, CRUD de servicios), reviews según frame Figma Buscar-Jobit 2 (opiniones + evaluación general + form con login requerido), rating en cards y favoritos persistidos con página `/favoritos`, fotos de perfil/galería servidas por la API, búsqueda insensible a tildes (`unaccent`), migración a `prisma.config.ts`, y eliminación definitiva del backend legado `apps/api-service`. 43 tests unitarios, 5 migraciones nuevas, todo verificado E2E contra el stack Docker.
+Sesión de admin portal: módulo backend `AdminService`/`AdminController` (CRUD de Jobits: crear/buscar/modificar/eliminar, todos con guard ADMIN), endpoints `PUT/DELETE /rubros/:id` admin-only con `RubroEnUsoException` (409) en cascade FK. Frontend: 9 pantallas del portal (`AdminInicio`, `AdminMenuJobit`, `AdminMenuServicios`, `AdminRegistrarJobit`, `AdminBuscarJobit`, `AdminModifJobit`, `AdminRegistrarServicio`, `AdminBuscarServicio`, `AdminServicioDetalle`), componentes `MenuOpciones` y `Volver`, `AdminLayout` con guard de rol ADMIN y botón Volver integrado en el header (mismo nivel del breadcrumb, `flex justify-between`) usando `destinoVolver(pathname)`. NavbarUser con links "Mis favoritos" y "Administración" (solo ADMIN). 58 tests unitarios pasando.
 
 ## Estado actual
 
 - Branch: `main` (tracking `origin/main`)
-- Commits de la sesión: `669da56` (refactor: eliminar legado) + `8cc6d1f` (feat: sesión) + checkpoint docs
-- Working tree: clean post-checkpoint
-- Stack Docker: postgres (5435) + api-nest (13005) + frontend (80) corriendo con las imágenes nuevas
+- Last commit: `0857a84 docs(notes): checkpoint snapshot 2026-06-12 sesion 2`
+- Working tree: 19 archivos modificados + 20 nuevos (todo trabajo del agente, auto-commit pendiente)
+- Stack Docker: postgres (5435) + api-nest (13005) + frontend (80)
 - Plan activo: no hay sistema de planes; se trabaja por inferencia desde `docs/notes/`
 
 ## Próximo step recomendado
 
-1. **Usuario**: crear OAuth Client ID (tipo Web) en Google Cloud Console y setear `GOOGLE_CLIENT_ID=` en el `.env` raíz → `docker compose up -d --build` lo inyecta a backend y frontend. Sin esto el botón de Google no aparece (todo lo demás funciona).
-2. **Desarrollo**: arrancar **bookings/solicitudes** (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED de `.agent/project-context.md`), o los votos "Es útil" de opiniones si se prefiere algo chico.
+1. **Usuario**: crear OAuth Client ID en Google Cloud Console → `GOOGLE_CLIENT_ID=` en `.env` raíz → `docker compose up -d --build` (sin esto el botón de Google no aparece).
+2. **Desarrollo**: bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED en `.agent/project-context.md`).
 
 ## Comandos para resumir
 
 1. `/workflows-project-resume` (recovery completo)
-2. Verificar stack: `docker compose ps` + `http://localhost/servicios`
+2. Verificar stack: `docker compose ps` + `http://localhost/admin`
 
 ## Backlog discovered esta sesión
 
@@ -31,7 +31,8 @@ Sesión grande de features sobre `apps/api` + frontend: refresh tokens opacos co
 
 ## Notas para próxima sesión
 
-- `apps/api-service/.env.docker` estuvo trackeado en git: las credenciales del Mongo legado quedan en la historia del repo — rotar si se reutilizaron.
+- Admin portal construido sin poder ver los frames Figma (429 en todos los renders) — validar visualmente contra los frames cuando la rate limit se libere.
+- `apps/api-service/.env.docker` estuvo trackeado en git: credenciales Mongo en la historia — rotar si se reutilizaron.
 - Sesiones logueadas antes del RBAC tienen JWT sin `role` → re-login para endpoints con guard de rol.
-- Figma API tira 429 enseguida: espaciar llamadas y revisar `screenshots/` antes de re-renderizar (hay renders de Buscar-Jobit, Buscar-Jobit 2 y los nodos JSON de reviews).
 - Usuarios demo: `*@jobit.demo` / `Jobit123!`; admin: `admin@jobit.demo` (ADMIN).
+- `SubRubroComponent` bug corregido: `i > 0` → `subRubroArray.length > 1` para poder borrar el primer ítem.

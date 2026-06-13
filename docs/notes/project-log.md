@@ -4,6 +4,30 @@ Central project state. Entries older than 7 days should be purged.
 
 ---
 
+## [2026-06-13] Agent: Claude (sesión 3) — Portal admin, rubros update/delete, Volver en AdminLayout
+
+### Completed
+- **Módulo admin (backend)**: `AdminService` + `AdminController` con guard `ADMIN` en todos los endpoints: `POST /admin/jobits` (crear proveedor completo con dto extendido), `GET /admin/jobits/:id`, `PUT /admin/jobits/:id`, `DELETE /admin/jobits/:id` (elimina user + prestador + datos relacionados en cascada)
+- **Rubros PUT/DELETE (admin-only)**: `PUT /rubros/:id` transaccional (renombra rubro + reconcilia subrubros), `DELETE /rubros/:id` con catch P2003 → HTTP 409 `RubroEnUsoException`; specs con 15 tests nuevos
+- **Portal admin frontend (9 pantallas)**: `AdminLayout` (guard de rol ADMIN, breadcrumb + Volver en misma línea `flex justify-between`), `AdminInicio`, `AdminMenuJobit`, `AdminMenuServicios`, `AdminRegistrarJobit`, `AdminBuscarJobit`, `AdminModifJobit` (carga datos del prestador, edita todos los campos), `AdminRegistrarServicio`, `AdminBuscarServicio`, `AdminServicioDetalle` (carga rubro existente, edita nombre + subrubros)
+- **Componentes admin reutilizables**: `MenuOpciones` (grid de cards de navegación), `Volver` (link con ArrowLeft, shrink-0)
+- **`Volver` en AdminLayout**: `destinoVolver(pathname)` deriva el destino correcto desde el pathname (cubre rutas dinámicas `/admin/jobits/:id`, `/admin/servicios/:id`, `/admin/*/registrar`, `/admin/*/buscar`) — removido de páginas individuales
+- **NavbarUser**: links "Mis favoritos" y "Administración" (visible solo a ADMIN)
+- **Router**: rutas `/admin/*` con `AdminLayout` como wrapper, todas anidadas
+
+### Decisiones / incidentes
+- Figma API: 429 en todos los renders de los 9 frames del admin — portal construido siguiendo convención de diseño del sistema existente sin poder ver los frames. Espaciar llamadas o usar `/v1/files/{key}/nodes?ids=` (JSON) en su lugar
+- `SubRubroComponent`: bug donde solo se podía borrar items que no fueran el primero (`i > 0`), corregido a `subRubroArray.length > 1`
+- `JobitSelect`/`JobitDiaHora`: no sincronizaban el `value` externo al precargar datos → `useEffect([value, multiple])` para que el estado local se actualice cuando el padre provee datos
+
+### Next Steps
+- Crear OAuth Client ID en Google Cloud Console → `GOOGLE_CLIENT_ID` en `.env` raíz
+- Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED)
+- Votos "Es útil" en opiniones
+- Verificación de email + recupero de contraseña
+
+---
+
 ## Current State
 
 ### Project Mission
@@ -26,8 +50,9 @@ Visión completa (ver `.agent/project-context.md`): marketplace con bookings, re
 - **Reviews**: puntaje 1-5 + comentario, única por usuario/prestador (upsert), resumen con promedio/distribución, dueño bloqueado
 - **Favoritos**: persistidos, endpoints idempotentes, página "Mis favoritos" paginada
 - **Storage**: upload solo imágenes (5 MB), `GET /upload/:id` público, fotos en cards/detalle/perfil, volumen `vstorage`
-- Frontend: `/servicios` (+rating y corazón persistido), `/servicios/:id` (+opiniones y evaluación general según frame Figma), `/perfil` (config completa del proveedor), `/favoritos`, login con botón de Google y botones unificados (Roboto 40px)
-- Infra: Swagger en `/api/docs`, rate limiting, 43 tests unitarios, 6 migraciones Prisma, seed completo (10 prestadores demo + 30 opiniones + `admin@jobit.demo`, password `Jobit123!`)
+- **Admin portal**: `AdminLayout` (guard ADMIN, breadcrumb + Volver), 9 pantallas completas (inicio, menú Jobit/Servicios, registrar/buscar/modificar Jobit, registrar/buscar/detalle Servicio), `AdminService` + `AdminController` en backend, `PUT/DELETE /rubros/:id` admin-only
+- Frontend: `/servicios` (+rating y corazón persistido), `/servicios/:id` (+opiniones y evaluación general según frame Figma), `/perfil` (config completa del proveedor), `/favoritos`, `/admin/*` (portal administración), login con botón de Google y botones unificados (Roboto 40px)
+- Infra: Swagger en `/api/docs`, rate limiting, 58 tests unitarios, 6 migraciones Prisma, seed completo (10 prestadores demo + 30 opiniones + `admin@jobit.demo`, password `Jobit123!`)
 
 ### In Progress
 
