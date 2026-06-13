@@ -1,35 +1,38 @@
-# Last Checkpoint — 2026-06-13 (sesión 5)
+# Last Checkpoint — 2026-06-13 (sesión 6)
 
 ## Sesión summary
-
-Sesión corta de UX: la sección "Fotos" del formulario "Registrate como Prestador" (`Register.tsx`) fue refactorizada para ser idéntica a la galería de Configuración de perfil (`Perfil.tsx`). Ahora muestra thumbnails 96×96 con preview local (`URL.createObjectURL`), botón ✕ con reveal en hover, botón `+` dashed igual al de Perfil, nota "La primera foto se muestra como foto de perfil en el buscador.", y es una `<section>` propia separada de Descripción. El estado pasó de `foto: File | null` a `fotos: File[]` + `previews: string[]`; en onSubmit las fotos se suben en loop tras el login.
+Se implementó una galería lightbox en la vista de detalle del prestador (click en cualquier foto abre modal con navegación full-size, teclado, contador y cierre por fondo/Escape). Se refactorizó el buscador de /servicios: eliminado el botón "Buscar", búsqueda automática al seleccionar filtros y campo de texto libre `q` con debounce 300ms que busca por nombre, apellido, rubro, sub-rubro y zona. El backend extendió el SQL de `findIdsPorTexto` para cubrir rubro, sub-rubro y zona de cobertura.
 
 ## Estado actual
+- Branch: main (tracking origin/main)
+- Last commit: 3d6488d feat(register): sección Fotos idéntica a Perfil con preview local y múltiples imágenes (pre-sesión; el commit de esta sesión se ejecuta en checkpoint)
+- Working tree: clean (post-commit de checkpoint)
+- Plan activo: ninguno
 
-- Branch: `main` (tracking `origin/main`)
-- Last commit: `103f608 feat: eliminar foto perfil, votos útil en reviews, verificación email y recupero contraseña`
-- Working tree: 1 modificado (Register.tsx — work del agente, pendiente commit)
-- Plan activo: no hay plan YAML activo
+## Features completadas (acumulado)
+- Auth completa (JWT + refresh tokens + Google + RBAC)
+- Verificación de email + recupero de contraseña
+- Prestadores (CRUD + búsqueda con unaccent + q libre)
+- Reviews + votos "Es útil"
+- Favoritos
+- Storage (upload/delete) + galería lightbox en detalle prestador
+- Portal Admin (9 pantallas)
+- 58 tests unitarios · 8 migraciones Prisma
 
 ## Próximo step recomendado
-
-1. **SMTP**: completar `MAIL_USER` + `MAIL_PASS` en `apps/api/.env` (Gmail App Password desde myaccount.google.com → Seguridad → Contraseñas de aplicación), luego `docker compose up -d --build`.
-2. **Verificar flujo email**: registrar cuenta nueva y confirmar que llega el email de verificación.
-3. **Bookings/solicitudes**: siguiente dominio (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED con notificaciones).
+Implementar módulo de **Bookings/solicitudes**: modelo Prisma `Booking` (FK prestador + user + servicio), máquina de estados `CREATED → ACCEPTED → IN_PROGRESS → COMPLETED`, endpoints CRUD con guards de roles, y vistas frontend para solicitar/gestionar turnos.
 
 ## Comandos para resumir
+1. `/workflows:project-resume` (recovery completo)
+2. Comenzar con el módulo de Bookings
 
-1. `/workflows-project-resume` (recovery completo)
-2. Verificar stack: `docker compose ps` + `http://localhost/registrate` (sección Fotos con thumbnails)
-
-## Backlog discovered esta sesión
-
-- (nada nuevo — sesión de UX pura)
+## Backlog sesión
+- Bookings/solicitudes (workflow completo)
+- Flujo "convertirme en proveedor" para cuentas Google
+- Configurar SMTP (`MAIL_USER` + `MAIL_PASS` en `.env` raíz)
 
 ## Notas para próxima sesión
-
-- Register.tsx: las fotos son locales hasta el submit (sin JWT aún); se suben post-login en loop con `uploadFile(archivo)`. No hay diferencia de backend, solo UX.
-- SMTP configurado en el .env (`kucho.test.77@gmail.com` + App Password) pero no verificado end-to-end.
-- `forgotPassword` no funciona para cuentas Google (no tienen password local) — esas necesitan el flujo "convertirme en proveedor".
-- Usuarios demo: `*@jobit.demo` / `Jobit123!`; admin: `admin@jobit.demo` (rol ADMIN).
-- GOOGLE_CLIENT_ID configurado y funcional.
+- `GaleriaFotos` es un componente genérico reutilizable; podría servir también en Perfil si se quiere lightbox desde ahí.
+- El `q` del buscador combina con los pills (AND): tipear "Capital" + seleccionar "Plomería" devuelve plomeros en Capital.
+- SMTP sigue sin configurar: `MAIL_USER` + `MAIL_PASS` en `.env` raíz (Gmail App Password).
+- Usuarios demo: `*@jobit.demo` / `Jobit123!`; admin: `admin@jobit.demo` (rol ADMIN). GOOGLE_CLIENT_ID configurado y funcional.

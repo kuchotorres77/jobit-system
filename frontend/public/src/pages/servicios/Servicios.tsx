@@ -25,6 +25,7 @@ export default function Servicios() {
   const [searchParams] = useSearchParams();
   const [rubros, setRubros] = useState<Rubro[]>([]);
   const [filtros, setFiltros] = useState<SearchValues>({
+    q: searchParams.get("q") ?? SIN_FILTRO,
     rubro: searchParams.get("rubro") ?? SIN_FILTRO,
     subrubro: searchParams.get("subrubro") ?? SIN_FILTRO,
     zona: searchParams.get("zona") ?? SIN_FILTRO,
@@ -50,6 +51,7 @@ export default function Servicios() {
         rubroId: subrubroId ? undefined : rubroActual?.id,
         subrubroId,
         zona: valores.zona || undefined,
+        q: valores.q || undefined,
       });
 
       setPrestadores((prev) => (acumular ? [...prev, ...result.data] : result.data));
@@ -124,14 +126,15 @@ export default function Servicios() {
     }
   };
 
-  // Primera búsqueda cuando los rubros están disponibles (los filtros de URL
-  // necesitan resolver nombre → id contra la lista de rubros)
+  // Búsqueda automática: debounce 300ms para el campo de texto, inmediata para los selects.
+  // Espera a que los rubros carguen cuando el filtro depende de ellos (rubro/subrubro por nombre → id).
   useEffect(() => {
-    if (rubros.length > 0 || (!filtros.rubro && !filtros.subrubro)) {
-      void buscar(1, filtros);
-    }
+    if (rubros.length === 0 && (filtros.rubro || filtros.subrubro)) return;
+    const delay = filtros.q ? 300 : 0;
+    const timer = setTimeout(() => void buscar(1, filtros), delay);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rubros]);
+  }, [filtros.q, filtros.rubro, filtros.subrubro, filtros.zona, rubros.length]);
 
   const hayMas = prestadores.length < total;
 
@@ -146,7 +149,6 @@ export default function Servicios() {
           values={filtros}
           loading={loading}
           onChange={setFiltros}
-          onBuscar={() => buscar(1, filtros)}
         />
 
         {/* Título: logo "Jobit" en letras naranjas, como el frame Buscar-Jobit */}

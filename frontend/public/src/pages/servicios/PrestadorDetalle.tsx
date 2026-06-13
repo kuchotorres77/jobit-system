@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { createSearchParams, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Mail, Phone, Star } from "lucide-react";
 import Swal from "sweetalert2";
-import { NavbarUser, Footer } from "@/components";
+import { NavbarUser, Footer, GaleriaFotos } from "@/components";
 import {
   ApiError,
-  archivoUrl,
   getPrestador,
   getRubros,
   Prestador,
@@ -24,6 +23,7 @@ export default function PrestadorDetalle() {
   const [resumenReviews, setResumenReviews] = useState<ReviewsResumen | null>(null);
   const [rubros, setRubros] = useState<Rubro[]>([]);
   const [filtros, setFiltros] = useState<SearchValues>({
+    q: SIN_FILTRO,
     rubro: SIN_FILTRO,
     subrubro: SIN_FILTRO,
     zona: SIN_FILTRO,
@@ -53,6 +53,7 @@ export default function PrestadorDetalle() {
 
   const irABusqueda = () => {
     const params: Record<string, string> = {};
+    if (filtros.q) params.q = filtros.q;
     if (filtros.rubro) params.rubro = filtros.rubro;
     if (filtros.subrubro) params.subrubro = filtros.subrubro;
     if (filtros.zona) params.zona = filtros.zona;
@@ -115,27 +116,12 @@ export default function PrestadorDetalle() {
               )}
             </div>
 
-            {/* Banner: primera foto del prestador, o iniciales si no subió ninguna */}
+            {/* Banner: galería de fotos con lightbox, o iniciales si no subió ninguna */}
             {fotos.length > 0 ? (
-              <div className="mb-10">
-                <img
-                  src={archivoUrl(fotos[0].id)}
-                  alt={`${prestador.user.nombre} ${prestador.user.apellido}`}
-                  className="h-64 w-full rounded-xl object-cover"
-                />
-                {fotos.length > 1 && (
-                  <div className="flex gap-2 mt-2 overflow-x-auto">
-                    {fotos.slice(1).map((foto) => (
-                      <img
-                        key={foto.id}
-                        src={archivoUrl(foto.id)}
-                        alt="Foto del prestador"
-                        className="h-20 w-20 rounded-lg object-cover shrink-0"
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+              <GaleriaFotos
+                fotos={fotos}
+                nombre={`${prestador.user.nombre} ${prestador.user.apellido}`}
+              />
             ) : (
               <div className="h-64 rounded-xl bg-gradient-to-br from-jobit-violeta-700 via-jobit-violeta-900 to-jobit-violeta-900 flex items-center justify-center mb-10">
                 <span className="text-white text-7xl font-semibold opacity-80">

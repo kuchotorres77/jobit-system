@@ -146,15 +146,22 @@ export class PrestadoresRepository {
 
   // Búsqueda insensible a mayúsculas y tildes (extensión unaccent de Postgres),
   // fuera del where de Prisma porque su API no soporta unaccent.
+  // Cubre: nombre, apellido, descripción, rubro, subrubro y zona de cobertura.
   private async findIdsPorTexto(q: string): Promise<string[]> {
     const patron = `%${q.replace(/[\\%_]/g, '\\$&')}%`;
     const rows = await this.prisma.$queryRaw<Array<{ id: string }>>`
-      SELECT p.id
+      SELECT DISTINCT p.id
       FROM prestadores p
       JOIN users u ON u.id = p."userId"
+      LEFT JOIN servicios s ON s."prestadorId" = p.id
+      LEFT JOIN subrubros sr ON sr.id = s."subrubroId"
+      LEFT JOIN rubros r ON r.id = sr."rubroId"
       WHERE unaccent(coalesce(p.descripcion, '')) ILIKE unaccent(${patron})
-         OR unaccent(u.nombre) ILIKE unaccent(${patron})
-         OR unaccent(u.apellido) ILIKE unaccent(${patron})
+         OR unaccent(u.nombre)    ILIKE unaccent(${patron})
+         OR unaccent(u.apellido)  ILIKE unaccent(${patron})
+         OR unaccent(coalesce(sr.nombre, '')) ILIKE unaccent(${patron})
+         OR unaccent(coalesce(r.nombre,  '')) ILIKE unaccent(${patron})
+         OR array_to_string(s."zonaCobertura", ',') ILIKE ${patron}
     `;
     return rows.map((row) => row.id);
   }

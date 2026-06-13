@@ -1,0 +1,18 @@
+checkpoint_date: 2026-06-13
+session_label: sesión 6
+session_summary: "Galería lightbox en detalle de prestador + buscador reactivo con texto libre en /servicios"
+commits_created: []
+files_modified_count: 5
+files_created_count: 1
+files_changed:
+  - frontend/public/src/components/GaleriaFotos.tsx  # nuevo — lightbox
+  - frontend/public/src/components/index.ts          # export GaleriaFotos
+  - frontend/public/src/pages/servicios/PrestadorDetalle.tsx  # usa GaleriaFotos, q en filtros
+  - frontend/public/src/pages/servicios/Servicios.tsx         # auto-search debounce, q
+  - frontend/public/src/pages/servicios/components/SearchBar.tsx  # input q, onBuscar opcional
+  - apps/api/src/prestadores/prestadores.repository.ts         # findIdsPorTexto extendido
+backlog_items_added:
+  - "Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED)"
+  - "Flujo 'convertirme en proveedor' para cuentas Google"
+  - "Configurar SMTP (MAIL_USER + MAIL_PASS en .env raíz)"
+next_session_recommendation: "Implementar módulo de Bookings — modelo Prisma Booking, endpoints CRUD con máquina de estados, vistas frontend para solicitar/gestionar"

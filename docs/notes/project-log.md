@@ -4,6 +4,27 @@ Central project state. Entries older than 7 days should be purged.
 
 ---
 
+## [2026-06-13] Agent: Claude (sesión 6) — Galería lightbox en detalle prestador + buscador reactivo con texto libre
+
+### Completed
+- **GaleriaFotos (nuevo componente)**: `frontend/public/src/components/GaleriaFotos.tsx` — lightbox integrado que reemplaza el bloque de imágenes en PrestadorDetalle. Click en banner o thumbnail abre modal con imagen full-size, flechas ← → (también teclado), contador N/M, X para cerrar, click en fondo cierra, Escape cierra, body scroll bloqueado mientras está abierto.
+- **Buscador reactivo en /servicios**: eliminado el botón "Buscar"; la búsqueda se dispara automáticamente vía `useEffect` + debounce 300ms cuando hay texto en `q`, inmediata (0ms) para selects de rubro/subrubro/zona.
+- **Campo de texto libre `q`**: nuevo input con ícono lupa en SearchBar, busca mientras el usuario escribe. `onBuscar` pasó a ser opcional — el botón solo aparece en PrestadorDetalle (que navega al listado, comportamiento diferente).
+- **Backend — `findIdsPorTexto` extendido**: SQL con JOIN a `servicios`, `subrubros` y `rubros`; ahora `q` cubre nombre, apellido, descripción, nombre de sub-rubro, nombre de rubro, y zona de cobertura (`array_to_string`). Se agregó `DISTINCT` para evitar filas duplicadas.
+- **PrestadorDetalle**: `q: SIN_FILTRO` en estado inicial; el botón "Buscar" preservado y ya lleva `q` en los query params de navegación.
+
+### Decisiones
+- Lightbox custom (Tailwind + lucide) sin dependencia extra; Swiper está instalado pero sería exceso para esta UI.
+- Debounce selectivo: 0ms para selects (UX inmediata), 300ms para texto (evita fetch por cada tecla).
+- `onBuscar` opcional en SearchBar para reutilizar el componente en dos contextos con UX diferente.
+
+### Next Steps
+- Bookings/solicitudes (workflow CREATED→ACCEPTED→IN_PROGRESS→COMPLETED)
+- Flujo "convertirme en proveedor" para cuentas Google (nacen CUSTOMER sin password)
+- Configurar SMTP: `MAIL_USER` + `MAIL_PASS` en `.env` raíz (Gmail App Password)
+
+---
+
 ## [2026-06-13] Agent: Claude (sesión 5) — Fotos en Register idéntico a Perfil
 
 ### Completed
